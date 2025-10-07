@@ -1,0 +1,338 @@
+﻿@model clothes_shop.Models.Product
+@using System.Security.Claims
+
+<div class="container py-5">
+    <!-- Product Details -->
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-body p-0">
+            <div class="row g-0">
+                <div class="col-lg-6">
+                    <div class="p-4 h-100 d-flex align-items-center justify-content-center bg-light rounded-start">
+                        <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid" style="max-height: 400px; object-fit: contain;">
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="p-4">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb small mb-4">
+                                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Головна</a></li>
+                                <li class="breadcrumb-item active">@Model.Name</li>
+                            </ol>
+                        </nav>
+
+                        <h1 class="h3 mb-3">@Model.Name</h1>
+                        <p class="h4 text-primary mb-4">@Model.Price.ToString("C")</p>
+
+                        <div class="mb-4">
+                            @if (Model.StockQuantity > 0)
+                            {
+                                <span class="badge bg-success px-3 py-2 mb-3">В наявності</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger px-3 py-2 mb-3">Не в наявності</span>
+                            }
+
+                            <p class="text-secondary mb-3">@Model.Description</p>
+
+                            <div class="product-details small">
+                                <div class="row">
+                                    <div class="col-6 mb-2">
+                                        <span class="text-muted">Колір:</span>
+                                        <span class="ms-2">@Model.Color</span>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <span class="text-muted">В упаковці:</span>
+                                        <span class="ms-2">@Model.PiecesPerPackage шт.</span>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <span class="text-muted">Мікрони:</span>
+                                        <span class="ms-2">@Model.Density мк</span>
+                                    </div>
+                                    @if (Model.Volume > 0)
+                                    {
+                                        <div class="col-6 mb-2">
+                                            <span class="text-muted">Об'єм:</span>
+                                            <span class="ms-2">@Model.Volume л</span>
+                                        </div>
+                                    }
+                                    @if (Model.StockQuantity <= 0)
+                                    {
+                                        <div class="text-warning fw-medium mt-2">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Термін виготовлення: @Model.ProductionTimeDays 
+                                            @(Model.ProductionTimeDays == 1 ? "день" : Model.ProductionTimeDays < 5 ? "дні" : "днів")
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.StockQuantity > 0)
+                        {
+                            <button class="btn btn-primary btn-lg w-100" id="buyNowBtn" data-product-id="@Model.Id">
+                                <i class="fas fa-cart-plus me-2"></i>Додати в кошик
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-secondary btn-lg w-100" disabled>
+                                <i class="fas fa-cart-plus me-2"></i>Додати в кошик
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h3 class="h5 mb-0">Коментарі</h3>
+        </div>
+        <div class="card-body">
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                <div class="mb-4">
+                    <form id="commentForm" class="mb-3">
+                        <div class="form-group">
+                            <textarea id="commentText" class="form-control" rows="3"
+                                      placeholder="Напишіть ваш коментар..."
+                                      style="resize: none;"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">
+                            <i class="fas fa-comment me-2"></i>Додати коментар
+                        </button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-light border">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <a href="/Identity/Account/Login" class="text-decoration-none">Увійдіть</a>, щоб залишити коментар
+                </div>
+            }
+
+            <div id="commentsList">
+                @if (ViewBag.Comments != null)
+                {
+                    foreach (var comment in (IEnumerable<Comment>)ViewBag.Comments)
+                    {
+                        <div class="card border mb-3 hover-shadow" id="comment-@comment.Id">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <h6 class="mb-0">@comment.User.FirstName @comment.User.LastName</h6>
+                                        <small class="text-muted">@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                                    </div>
+                                    @if (User.Identity.IsAuthenticated && User.FindFirstValue(ClaimTypes.NameIdentifier) == comment.UserId)
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm delete-comment" data-comment-id="@comment.Id">
+                                            <i class="fas fa-trash me-1"></i>Видалити
+                                        </button>
+                                    }
+                                </div>
+                                <p class="card-text mb-0">@comment.Text</p>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-shadow {
+        transition: box-shadow 0.3s ease;
+    }
+
+        .hover-shadow:hover {
+            box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+        }
+
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+    }
+
+    .text-warning.fw-medium {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.5rem;
+        background-color: rgba(255, 193, 7, 0.1);
+        border-radius: 0.25rem;
+        border-left: 3px solid #ffc107;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(function () {
+            function showToast(message, isSuccess = true) {
+                Toastify({
+                    text: message,
+                    duration: 3000,
+                    close: true,
+                    gravity: "top",
+                    position: "right",
+                    style: {
+                        background: isSuccess ? "#28a745" : "#dc3545"
+                    }
+                }).showToast();
+            }
+
+            $('#commentForm').on('submit', function (e) {
+                e.preventDefault();
+                var text = $('#commentText').val();
+                var submitBtn = $(this).find('button[type="submit"]');
+
+                if (!text) {
+                    showToast('Будь ласка, введіть текст коментаря', false);
+                    return;
+                }
+
+                submitBtn.prop('disabled', true)
+                    .html('<span class="spinner-border spinner-border-sm me-2"></span>Додаємо...');
+
+                $.ajax({
+                    url: '/Home/AddComment',
+                    type: 'POST',
+                    data: {
+                        productId: @Model.Id,
+                        text: text
+                    },
+                    success: function (result) {
+                        if (result.success) {
+                            var newComment = `
+                                        <div class="card border mb-3 hover-shadow" id="comment-${result.comment.id}">
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div>
+                                                        <h6 class="mb-0">${result.comment.userName}</h6>
+                                                        <small class="text-muted">${result.comment.createdAt}</small>
+                                                    </div>
+                                                    <button class="btn btn-outline-danger btn-sm delete-comment" data-comment-id="${result.comment.id}">
+                                                        <i class="fas fa-trash me-1"></i>Видалити
+                                                    </button>
+                                                </div>
+                                                <p class="card-text mb-0">${result.comment.text}</p>
+                                            </div>
+                                        </div>`;
+
+                            $('#commentsList').prepend(newComment);
+                            $('#commentText').val('');
+                            showToast('Коментар додано успішно');
+                        } else {
+                            showToast(result.message, false);
+                        }
+                    },
+                    error: function () {
+                        showToast('Помилка при додаванні коментаря', false);
+                    },
+                    complete: function () {
+                        submitBtn.prop('disabled', false)
+                            .html('<i class="fas fa-comment me-2"></i>Додати коментар');
+                    }
+                });
+            });
+
+            $(document).on('click', '.delete-comment', function () {
+                var btn = $(this);
+                var commentId = btn.data('comment-id');
+
+                if (confirm('Ви впевнені, що хочете видалити цей коментар?')) {
+                    btn.prop('disabled', true)
+                        .html('<span class="spinner-border spinner-border-sm"></span>');
+
+                    $.ajax({
+                        url: '/Home/DeleteComment',
+                        type: 'POST',
+                        data: { commentId: commentId },
+                        success: function (result) {
+                            if (result.success) {
+                                $('#comment-' + commentId).fadeOut(function () {
+                                    $(this).remove();
+                                    showToast('Коментар видалено');
+                                });
+                            }
+                        },
+                        error: function () {
+                            showToast('Помилка при видаленні коментаря', false);
+                            btn.prop('disabled', false)
+                                .html('<i class="fas fa-trash me-1"></i>Видалити');
+                        }
+                    });
+                }
+            });
+
+            $('#buyNowBtn').click(function () {
+                var btn = $(this);
+                var productId = btn.data('product-id');
+
+                btn.prop('disabled', true)
+                    .html('<span class="spinner-border spinner-border-sm me-2"></span>Додаємо...');
+
+                $.ajax({
+                    url: '/ShoppingCart/AddToCart',
+                    type: 'POST',
+                    data: { productId: productId },
+                    success: function (result) {
+                        if (result.success) {
+                            showToast('Товар додано до кошика!');
+                        } else if (result.requireAuth) {
+                            showAuthModal(result.loginUrl, result.message);
+                        } else {
+                            showToast(result.message, false);
+                        }
+                    },
+                    error: function () {
+                        showToast('Помилка при додаванні товару до кошика', false);
+                    },
+                    complete: function () {
+                        btn.prop('disabled', false)
+                            .html('<i class="fas fa-cart-plus me-2"></i>Додати в кошик');
+                    }
+                });
+            });
+
+            function showAuthModal(loginUrl, message) {
+                var modalHtml = `
+                    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="authModalLabel">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Вхід необхідний
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body text-center">
+                                    <i class="fas fa-shopping-cart fa-3x text-primary mb-3"></i>
+                                    <p class="mb-3">${message}</p>
+                                    <p class="text-muted small">Після авторизації товар буде автоматично додано до вашого кошика.</p>
+                                </div>
+                                <div class="modal-footer justify-content-center">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                                    <a href="${loginUrl}" class="btn btn-primary">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Увійти
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                $('#authModal').remove();
+
+                $('body').append(modalHtml);
+
+                $('#authModal').modal('show');
+
+                $('#authModal').on('hidden.bs.modal', function () {
+                    $(this).remove();
+                });
+            }
+        });
+    </script>
+}

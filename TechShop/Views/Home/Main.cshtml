@@ -1,0 +1,221 @@
+﻿@model IEnumerable<clothes_shop.Models.Product>
+@{
+    ViewData["Title"] = "Головна";
+    var carouselProducts = (List<Product>)ViewBag.CarouselProducts;
+}
+
+<div id="mainCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        @for (int i = 0; i < carouselProducts.Count; i++)
+        {
+            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="@i"
+                    class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : "false")">
+            </button>
+        }
+    </div>
+
+    <div class="carousel-inner rounded shadow-sm">
+        @for (int i = 0; i < carouselProducts.Count; i++)
+        {
+            var product = carouselProducts[i];
+            <div class="carousel-item @(i == 0 ? "active" : "")">
+                <div class="carousel-product-overlay"></div>
+                <img src="@product.ImageUrl" class="d-block w-100" alt="@product.Name"
+                     style="height: 500px; object-fit: cover;">
+                <div class="carousel-caption d-none d-md-block">
+                    <h2>@product.Name</h2>
+                    <div class="price-tag mb-3">
+                        <span class="display-6">@product.Price.ToString("C")</span>
+                    </div>
+                    @if (product.StockQuantity > 0)
+                    {
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="@Url.Action("Details", "Home", new { id = product.Id })"
+                               class="btn btn-primary btn-lg">
+                                <i class="fas fa-info-circle me-2"></i>Детальніше
+                            </a>
+                            <button class="btn btn-success btn-lg add-to-cart" data-product-id="@product.Id">
+                                <i class="fas fa-cart-plus me-2"></i>До кошика
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="btn btn-danger btn-lg disabled">
+                            <i class="fas fa-times-circle me-2"></i>Немає в наявності
+                        </span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Наші товари</h2>
+        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-primary">
+            Переглянути всі <i class="fas fa-arrow-right ms-2"></i>
+        </a>
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+        @foreach (var product in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm hover-elevation">
+                    <div class="position-relative">
+                        <img src="@product.ImageUrl" class="card-img-top p-3"
+                             style="height: 200px; object-fit: contain;" alt="@product.Name">
+                        @if (product.StockQuantity > 0)
+                        {
+                            <span class="badge bg-success position-absolute top-0 end-0 m-3">В наявності</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger position-absolute top-0 end-0 m-3">Не в наявності</span>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@product.Name</h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 mb-0">@product.Price.ToString("C")</span>
+                            <div class="btn-group">
+                                <a href="@Url.Action("Details", "Home", new { id = product.Id })"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-info-circle"></i>
+                                </a>
+                                @if (product.StockQuantity > 0)
+                                {
+                                    <button class="btn btn-outline-success btn-sm add-to-cart"
+                                            data-product-id="@product.Id">
+                                        <i class="fas fa-cart-plus"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .hover-elevation {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-elevation:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+    }
+
+    .carousel-product-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.7));
+    }
+
+    .carousel-caption {
+        bottom: 50%;
+        transform: translateY(50%);
+        background: rgba(0, 0, 0, 0.5);
+        padding: 2rem;
+        border-radius: 10px;
+    }
+
+    .price-tag {
+        background: rgba(255,255,255,0.2);
+        padding: 0.5rem 2rem;
+        border-radius: 30px;
+        display: inline-block;
+    }
+
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 5%;
+        opacity: 0.8;
+    }
+
+    .carousel-indicators {
+        bottom: 20px;
+    }
+
+        .carousel-indicators button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin: 0 5px;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#mainCarousel').carousel({
+                interval: 5000
+            });
+
+            $('.add-to-cart').click(function () {
+                var btn = $(this);
+                var productId = btn.data('product-id');
+
+                btn.prop('disabled', true);
+
+                $.post('/ShoppingCart/AddToCart', { productId: productId })
+                    .done(function (result) {
+                        if (result.success) {
+                            Toastify({
+                                text: "Товар додано до кошика",
+                                duration: 3000,
+                                close: true,
+                                gravity: "top",
+                                position: "right",
+                                style: {
+                                    background: "#28a745"
+                                }
+                            }).showToast();
+                        } else {
+                            Toastify({
+                                text: result.message,
+                                duration: 3000,
+                                close: true,
+                                gravity: "top",
+                                position: "right",
+                                style: {
+                                    background: "#dc3545"
+                                }
+                            }).showToast();
+                        }
+                    })
+                    .fail(function () {
+                        Toastify({
+                            text: "Помилка додавання товару",
+                            duration: 3000,
+                            close: true,
+                            gravity: "top",
+                            position: "right",
+                            style: {
+                                background: "#dc3545"
+                            }
+                        }).showToast();
+                    })
+                    .always(function () {
+                        btn.prop('disabled', false);
+                    });
+            });
+        });
+    </script>
+}

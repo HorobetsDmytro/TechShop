@@ -1,9 +1,347 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IEnumerable<clothes_shop.Models.Product>
+@{
+    ViewData["Title"] = "Shop";
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    var categories = ViewBag.Categories as IEnumerable<clothes_shop.Models.Category>;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Horobets Dmytro</h1>
-    <h2>Group: SEs-25-1, KhNU</h2>
-    <h3>Home appliance store</h3>
+<div class="container py-4">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form asp-action="Index" method="get" id="filterForm">
+                        <h5 class="fw-bold mb-4">Фільтри</h5>
+
+                        <div class="mb-4">
+                            <label class="fw-500 mb-2">Категорія</label>
+                            <select name="categoryId" class="form-select form-select-sm" id="categorySelect">
+                                <option value="">Всі категорії</option>
+                                @foreach (var category in categories)
+                                {
+                                    <option value="@category.Id" selected="@(ViewBag.CategoryId == category.Id)">@category.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-500 mb-2">Ціна, UAH</label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="minPrice" class="form-control" value="@ViewBag.MinPrice" placeholder="Від">
+                                <span class="input-group-text">-</span>
+                                <input type="number" name="maxPrice" class="form-control" value="@ViewBag.MaxPrice" placeholder="До">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-500 mb-2">Колір</label>
+                            <select name="color" class="form-select form-select-sm">
+                                <option value="">Всі кольори</option>
+                                @foreach (var color in ViewBag.Colors)
+                                {
+                                    <option value="@color" selected="@(ViewBag.SelectedColor == color)">@color</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-500 mb-2">Розміри</label>
+                            <div class="mb-2">
+                                <label class="form-label small">Ширина (см)</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" name="minWidth" class="form-control" placeholder="Від" value="@ViewBag.MinWidth">
+                                    <span class="input-group-text">-</span>
+                                    <input type="number" name="maxWidth" class="form-control" placeholder="До" value="@ViewBag.MaxWidth">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="form-label small">Висота (см)</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" name="minHeight" class="form-control" placeholder="Від" value="@ViewBag.MinHeight">
+                                    <span class="input-group-text">-</span>
+                                    <input type="number" name="maxHeight" class="form-control" placeholder="До" value="@ViewBag.MaxHeight">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-500 mb-2">Кількість в упаковці</label>
+                            <input type="number" name="piecesPerPackage" class="form-control form-control-sm" value="@ViewBag.PiecesPerPackage">
+                        </div>
+
+                        <div class="mb-4" id="volumeFilter" style="display: none;">
+                            <label class="fw-500 mb-2">Об'єм (л)</label>
+                            <input type="number" name="volume" class="form-control form-control-sm" value="@ViewBag.Volume">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-2"></i>Застосувати
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="row g-4">
+                @foreach (var product in Model)
+                {
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm hover-elevation">
+                            <div class="position-relative">
+                                <img src="@product.ImageUrl" class="card-img-top p-3" style="height: 200px; object-fit: contain;" alt="@product.Name">
+                                @if (product.StockQuantity > 0)
+                                {
+                                    <span class="badge bg-success position-absolute top-0 end-0 m-3">В наявності</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger position-absolute top-0 end-0 m-3">Не в наявності</span>
+                                }
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <h6 class="card-title mb-2">@product.Name</h6>
+                                <div class="text-primary fw-bold mb-2">@product.Price.ToString("C")</div>
+                                <div class="small text-muted mb-3">
+                                    <div>Колір: @product.Color</div>
+                                    <div>В упаковці: @product.PiecesPerPackage шт.</div>
+                                    @if (product.Volume > 0)
+                                    {
+                                        <div>Об'єм: @product.Volume л</div>
+                                    }
+                                    @if (product.StockQuantity <= 0)
+                                    {
+                                        <div class="text-warning fw-medium mt-2">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Термін виготовлення: @product.ProductionTimeDays 
+                                            @(product.ProductionTimeDays == 1 ? "день" : product.ProductionTimeDays < 5 ? "дні" : "днів")
+                                        </div>
+                                    }
+                                </div>
+                                <div class="mt-auto d-flex gap-2">
+                                    <a asp-controller="Home" asp-action="Details" asp-route-id="@product.Id"
+                                       class="btn btn-outline-primary btn-sm flex-grow-1">
+                                        <i class="fas fa-info-circle me-1"></i>Деталі
+                                    </a>
+                                    @if (product.StockQuantity > 0)
+                                    {
+                                        <button class="btn btn-primary btn-sm flex-grow-1 add-to-cart" data-product-id="@product.Id">
+                                            <i class="fas fa-cart-plus me-1"></i>До кошика
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-secondary btn-sm flex-grow-1" disabled>
+                                            <i class="fas fa-cart-plus me-1"></i>До кошика
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (totalPages > 1)
+            {
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1 })" tabindex="-1">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        @for (int i = 1; i <= totalPages; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1 })">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
 </div>
+
+<style>
+    .fw-500 {
+        font-weight: 500;
+    }
+
+    .hover-elevation {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .hover-elevation:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+        }
+
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border-color: #dee2e6;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13,110,253,.25);
+        }
+
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
+
+    .page-link {
+        border: none;
+        padding: 0.5rem 0.75rem;
+        margin: 0 0.25rem;
+        border-radius: 0.25rem;
+    }
+
+    .page-item.active .page-link {
+        background-color: #0d6efd;
+    }
+
+    .text-warning.fw-medium {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.5rem;
+        background-color: rgba(255, 193, 7, 0.1);
+        border-radius: 0.25rem;
+        border-left: 3px solid #ffc107;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#categorySelect').change(function () {
+                var selectedCategory = $(this).find("option:selected").text();
+                if (selectedCategory === "Пакети для сміття") {
+                    $('#volumeFilter').slideDown();
+                } else {
+                    $('#volumeFilter').slideUp();
+                    $('input[name="volume"]').val('');
+                }
+            });
+
+            $('#categorySelect').trigger('change');
+
+            $('.add-to-cart').click(function () {
+                var btn = $(this);
+                var productId = btn.data('product-id');
+
+                var originalText = btn.html();
+
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Додаємо...');
+
+                $.post('/ShoppingCart/AddToCart', { productId: productId })
+                    .done(function (result) {
+                        if (result.success) {
+                            Toastify({
+                                text: result.message,
+                                duration: 4000,
+                                close: true,
+                                gravity: "top",
+                                position: "right",
+                                style: {
+                                    background: "#28a745"
+                                }
+                            }).showToast();
+
+                            if (result.newQuantity >= result.maxQuantity) {
+                                btn.html('<i class="fas fa-check me-1"></i>Не має в наявності')
+                                    .removeClass('btn-primary')
+                                    .addClass('btn-success')
+                                    .prop('disabled', true);
+                            } else {
+                                btn.html('<i class="fas fa-cart-plus me-1"></i>До кошика (' + result.newQuantity + ')')
+                                    .prop('disabled', false);
+                            }
+
+                        } else if (result.requireAuth) {
+                            showAuthModal(result.loginUrl, result.message);
+                        } else {
+                            Toastify({
+                                text: result.message,
+                                duration: 4000,
+                                close: true,
+                                gravity: "top",
+                                position: "right",
+                                style: {
+                                    background: "#dc3545"
+                                }
+                            }).showToast();
+                        }
+                    })
+                    .fail(function () {
+                        Toastify({
+                            text: "Помилка додавання товару",
+                            duration: 3000,
+                            close: true,
+                            gravity: "top",
+                            position: "right",
+                            style: {
+                                background: "#dc3545"
+                            }
+                        }).showToast();
+                    })
+                    .always(function () {
+                        if (!btn.hasClass('btn-success')) {
+                            btn.prop('disabled', false).html(originalText);
+                        }
+                    });
+            });
+
+            function showAuthModal(loginUrl, message) {
+                var modalHtml = `
+                    <div class="modal fade" id="authModal" tabindex="-1" aria-labelledby="authModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="authModalLabel">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Вхід необхідний
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body text-center">
+                                    <i class="fas fa-shopping-cart fa-3x text-primary mb-3"></i>
+                                    <p class="mb-3">${message}</p>
+                                    <p class="text-muted small">Після авторизації товар буде автоматично додано до вашого кошика.</p>
+                                </div>
+                                <div class="modal-footer justify-content-center">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Скасувати</button>
+                                    <a href="${loginUrl}" class="btn btn-primary">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Увійти
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                $('#authModal').remove();
+
+                $('body').append(modalHtml);
+
+                $('#authModal').modal('show');
+
+                $('#authModal').on('hidden.bs.modal', function () {
+                    $(this).remove();
+                });
+            }
+
+        });
+    </script>
+}

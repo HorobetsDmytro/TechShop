@@ -27,10 +27,7 @@ namespace TechShop.Controllers
         }
 
         public IActionResult Index(int page = 1, string sortOrder = "", int? categoryId = null,
-                                   double? minPrice = null, double? maxPrice = null, string searchTerm = "",
-                                   string color = "", int? minWidth = null, int? maxWidth = null,
-                                   int? minHeight = null, int? maxHeight = null,
-                                   int? piecesPerPackage = null, int? volume = null)
+                                   double? minPrice = null, double? maxPrice = null, string searchTerm = "")
         {
             const int pageSize = 9;
 
@@ -53,41 +50,6 @@ namespace TechShop.Controllers
                 query = query.Where(p => p.Price <= maxPrice.Value);
             }
 
-            if (!string.IsNullOrWhiteSpace(color))
-            {
-                query = query.Where(p => p.Color == color);
-            }
-
-            if (minWidth.HasValue)
-            {
-                query = query.Where(p => p.Width >= minWidth.Value);
-            }
-
-            if (maxWidth.HasValue)
-            {
-                query = query.Where(p => p.Width <= maxWidth.Value);
-            }
-
-            if (minHeight.HasValue)
-            {
-                query = query.Where(p => p.Height >= minHeight.Value);
-            }
-
-            if (maxHeight.HasValue)
-            {
-                query = query.Where(p => p.Height <= maxHeight.Value);
-            }
-
-            if (piecesPerPackage.HasValue)
-            {
-                query = query.Where(p => p.PiecesPerPackage == piecesPerPackage.Value);
-            }
-
-            if (volume.HasValue)
-            {
-                query = query.Where(p => p.Volume == volume.Value);
-            }
-
             query = sortOrder switch
             {
                 "price_asc" => query.OrderBy(p => p.Price),
@@ -100,7 +62,6 @@ namespace TechShop.Controllers
             var products = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
             var allProducts = _productRepository.GetProduct();
-            var colors = allProducts.Select(p => p.Color).Distinct().ToList();
             var minPriceInDb = allProducts.Any() ? allProducts.Min(p => p.Price) : 0;
             var maxPriceInDb = allProducts.Any() ? allProducts.Max(p => p.Price) : 0;
 
@@ -112,14 +73,6 @@ namespace TechShop.Controllers
             ViewBag.MaxPrice = maxPrice ?? maxPriceInDb;
             ViewBag.SearchTerm = searchTerm;
             ViewBag.Categories = _categoryRepository.GetAll();
-            ViewBag.Colors = colors;
-            ViewBag.SelectedColor = color;
-            ViewBag.MinWidth = minWidth;
-            ViewBag.MaxWidth = maxWidth;
-            ViewBag.MinHeight = minHeight;
-            ViewBag.MaxHeight = maxHeight;
-            ViewBag.PiecesPerPackage = piecesPerPackage;
-            ViewBag.Volume = volume;
 
             return View(products);
         }

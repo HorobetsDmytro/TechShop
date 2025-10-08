@@ -104,12 +104,6 @@
                                 <h6 class="card-title mb-2">@product.Name</h6>
                                 <div class="text-primary fw-bold mb-2">@product.Price.ToString("C")</div>
                                 <div class="small text-muted mb-3">
-                                    <div>Колір: @product.Color</div>
-                                    <div>В упаковці: @product.PiecesPerPackage шт.</div>
-                                    @if (product.Volume > 0)
-                                    {
-                                        <div>Об'єм: @product.Volume л</div>
-                                    }
                                     @if (product.StockQuantity <= 0)
                                     {
                                         <div class="text-warning fw-medium mt-2">

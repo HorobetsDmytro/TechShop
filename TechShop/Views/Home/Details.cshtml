@@ -37,25 +37,6 @@
 
                             <div class="product-details small">
                                 <div class="row">
-                                    <div class="col-6 mb-2">
-                                        <span class="text-muted">Колір:</span>
-                                        <span class="ms-2">@Model.Color</span>
-                                    </div>
-                                    <div class="col-6 mb-2">
-                                        <span class="text-muted">В упаковці:</span>
-                                        <span class="ms-2">@Model.PiecesPerPackage шт.</span>
-                                    </div>
-                                    <div class="col-6 mb-2">
-                                        <span class="text-muted">Мікрони:</span>
-                                        <span class="ms-2">@Model.Density мк</span>
-                                    </div>
-                                    @if (Model.Volume > 0)
-                                    {
-                                        <div class="col-6 mb-2">
-                                            <span class="text-muted">Об'єм:</span>
-                                            <span class="ms-2">@Model.Volume л</span>
-                                        </div>
-                                    }
                                     @if (Model.StockQuantity <= 0)
                                     {
                                         <div class="text-warning fw-medium mt-2">

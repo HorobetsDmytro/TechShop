@@ -1,4 +1,4 @@
-﻿@model IEnumerable<clothes_shop.Models.Product>
+﻿@model IEnumerable<TechShop.Models.Product>
 @{
     ViewData["Title"] = "Головна";
     var carouselProducts = (List<Product>)ViewBag.CarouselProducts;
@@ -6,7 +6,7 @@
 
 <div id="mainCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
     <div class="carousel-indicators">
-        @for (int i = 0; i < carouselProducts.Count; i++)
+        @for (var i = 0; i < carouselProducts.Count; i++)
         {
             <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="@i"
                     class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : "false")">

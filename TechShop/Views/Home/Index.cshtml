@@ -1,9 +1,9 @@
-﻿@model IEnumerable<clothes_shop.Models.Product>
+﻿@model IEnumerable<TechShop.Models.Product>
 @{
     ViewData["Title"] = "Shop";
     int currentPage = ViewBag.CurrentPage;
     int totalPages = ViewBag.TotalPages;
-    var categories = ViewBag.Categories as IEnumerable<clothes_shop.Models.Category>;
+    var categories = ViewBag.Categories as IEnumerable<Category>;
 }
 
 <div class="container py-4">

@@ -25,8 +25,8 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             .Include(o => o.User)
             .Include(o => o.OrderItems)
             .ThenInclude(oi => oi.Product)
-            .Include(o => o.Payment) // Додано
-            .Include(o => o.Delivery) // Додано
+            .Include(o => o.Payment)
+            .Include(o => o.Delivery)
             .ToList();
     }
 
@@ -36,8 +36,8 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             .Include(o => o.User)
             .Include(o => o.OrderItems)
             .ThenInclude(oi => oi.Product)
-            .Include(o => o.Payment) // Додано
-            .Include(o => o.Delivery) // Додано
+            .Include(o => o.Payment)
+            .Include(o => o.Delivery)
             .FirstOrDefault(o => o.Id == id);
     }
 
@@ -68,8 +68,8 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
             .Include(o => o.User)
             .Include(o => o.OrderItems)
             .ThenInclude(oi => oi.Product)
-            .Include(o => o.Payment) // Додано
-            .Include(o => o.Delivery) // Додано
+            .Include(o => o.Payment)
+            .Include(o => o.Delivery)
             .FirstOrDefaultAsync(o => o.Id == id);
     }
 

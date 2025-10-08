@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using TechShop.Interfaces;
 using TechShop.Models;
@@ -22,6 +23,20 @@ builder.Services.AddIdentity<User, IdentityRole>(options => {
     .AddDefaultTokenProviders()
     .AddUserManager<UserManager<User>>();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60); 
+    options.LoginPath = "/Identity/Account/Login";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    options.SlidingExpiration = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+
+    options.Cookie.IsEssential = true;
+});
+
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
@@ -30,8 +45,15 @@ builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"))
+    .AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
 
 var app = builder.Build();
 
@@ -42,9 +64,13 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapRazorPages();
 
 app.MapStaticAssets();
 

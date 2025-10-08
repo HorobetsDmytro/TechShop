@@ -1,13 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-    </PropertyGroup>
+      <UserSecretsId>03929478-e674-4834-8e8d-103fde73363b</UserSecretsId>
+  </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="iTextSharp" Version="5.5.13.4" />
+      <PackageReference Include="MailKit" Version="4.14.0" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.9" />

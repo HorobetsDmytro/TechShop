@@ -2,7 +2,6 @@
 @using System.Security.Claims
 
 <div class="container py-5">
-    <!-- Product Details -->
     <div class="card border-0 shadow-sm mb-5">
         <div class="card-body p-0">
             <div class="row g-0">
@@ -72,7 +71,7 @@
             <h3 class="h5 mb-0">Коментарі</h3>
         </div>
         <div class="card-body">
-            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            @if (User.Identity is { IsAuthenticated: true })
             {
                 <div class="mb-4">
                     <form id="commentForm" class="mb-3">

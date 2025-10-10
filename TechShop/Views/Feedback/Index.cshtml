@@ -1,0 +1,54 @@
+﻿<!-- Views/Feedback/Index.cshtml -->
+@model IEnumerable<FeedbackMessage>
+
+@{
+    ViewData["Title"] = "Зворотній зв'язок";
+}
+
+<div class="container py-4">
+    <h2>Повідомлення зворотного зв'язку</h2>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Дата</th>
+                    <th>Ім'я</th>
+                    <th>Email</th>
+                    <th>Повідомлення</th>
+                    <th>Статус</th>
+                    <th>Дії</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="@(!item.IsRead ? "table-primary" : "")">
+                        <td>@item.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>@item.Name</td>
+                        <td>@item.Email</td>
+                        <td>@item.Message</td>
+                        <td>
+                            @if (item.IsRead)
+                            {
+                                <span class="badge bg-success">Прочитано</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-primary">Нове</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!item.IsRead)
+                            {
+                                <a asp-action="MarkAsRead" asp-route-id="@item.Id" class="btn btn-sm btn-success">
+                                    Позначити як прочитане
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

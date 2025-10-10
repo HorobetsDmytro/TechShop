@@ -1,0 +1,220 @@
+@{
+    ViewData["Title"] = "Генерація звіту";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Генерація звіту по продажам
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="GenerateCompleteReport" method="get">
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-3">Оберіть період для звіту:</h6>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="startDate" class="form-label">
+                                        <i class="fas fa-calendar-alt me-1 text-primary"></i>Дата початку
+                                    </label>
+                                    <input type="date" class="form-control" id="startDate" name="startDate">
+                                    <small class="form-text text-muted">Залиште порожнім для звіту з самого початку</small>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="endDate" class="form-label">
+                                        <i class="fas fa-calendar-alt me-1 text-primary"></i>Дата кінця
+                                    </label>
+                                    <input type="date" class="form-control" id="endDate" name="endDate">
+                                    <small class="form-text text-muted">Залиште порожнім для звіту до сьогодні</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-3">Або оберіть готовий період:</h6>
+                            
+                            <div class="row g-2">
+                                <div class="col-6 col-md-3">
+                                    <button type="button" class="btn btn-outline-primary w-100" onclick="setToday()">
+                                        <i class="fas fa-calendar-day me-1"></i>Сьогодні
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <button type="button" class="btn btn-outline-primary w-100" onclick="setThisWeek()">
+                                        <i class="fas fa-calendar-week me-1"></i>Цей тиждень
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <button type="button" class="btn btn-outline-primary w-100" onclick="setThisMonth()">
+                                        <i class="fas fa-calendar-alt me-1"></i>Цей місяць
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <button type="button" class="btn btn-outline-primary w-100" onclick="setThisYear()">
+                                        <i class="fas fa-calendar me-1"></i>Цей рік
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-2 mt-2">
+                                <div class="col-6 col-md-3">
+                                    <button type="button" class="btn btn-outline-secondary w-100" onclick="setLastMonth()">
+                                        <i class="fas fa-calendar-minus me-1"></i>Минулий місяць
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <button type="button" class="btn btn-outline-secondary w-100" onclick="setLastYear()">
+                                        <i class="fas fa-calendar-times me-1"></i>Минулий рік
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <button type="button" class="btn btn-outline-info w-100" onclick="clearDates()">
+                                        <i class="fas fa-times me-1"></i>Очистити
+                                    </button>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <button type="button" class="btn btn-outline-warning w-100" onclick="setAllTime()">
+                                        <i class="fas fa-infinity me-1"></i>Весь час
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Що включає звіт:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Загальна статистика продажів</li>
+                                <li>Статистика по періодах</li>
+                                <li>Топ-10 найпопулярніших товарів</li>
+                                <li>Список непроданих товарів</li>
+                                <li>Статистика доставки та оплати</li>
+                                <li>Інформація про клієнтів</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-file-pdf me-2"></i>Згенерувати PDF звіт
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Повернутися до замовлень
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        
+        return `${year}-${month}-${day}`;
+    }
+
+    function setToday() {
+        const today = new Date();
+        document.getElementById('startDate').value = formatDate(today);
+        document.getElementById('endDate').value = formatDate(today);
+    }
+
+    function setThisWeek() {
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+
+        const firstDay = new Date(today);
+        const dayOffset = (dayOfWeek === 0) ? 6 : (dayOfWeek - 1);
+        firstDay.setDate(today.getDate() - dayOffset);
+
+        const lastDay = new Date(firstDay);
+        lastDay.setDate(firstDay.getDate() + 6);
+
+        document.getElementById('startDate').value = formatDate(firstDay);
+        document.getElementById('endDate').value = formatDate(lastDay);
+    }
+
+    function setThisMonth() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth();
+
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+
+        document.getElementById('startDate').value = formatDate(firstDay);
+        document.getElementById('endDate').value = formatDate(lastDay);
+    }
+
+    function setThisYear() {
+        const today = new Date();
+        const year = today.getFullYear();
+        
+        const firstDay = new Date(year, 0, 1);
+        const lastDay = new Date(year, 11, 31);
+
+        document.getElementById('startDate').value = formatDate(firstDay);
+        document.getElementById('endDate').value = formatDate(lastDay);
+    }
+
+    function setLastMonth() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = today.getMonth();
+
+        const firstDay = new Date(year, month - 1, 1);
+        const lastDay = new Date(year, month, 0);
+
+        document.getElementById('startDate').value = formatDate(firstDay);
+        document.getElementById('endDate').value = formatDate(lastDay);
+    }
+
+    function setLastYear() {
+        const today = new Date();
+        const year = today.getFullYear() - 1;
+
+        const firstDay = new Date(year, 0, 1);
+        const lastDay = new Date(year, 11, 31);
+
+        document.getElementById('startDate').value = formatDate(firstDay);
+        document.getElementById('endDate').value = formatDate(lastDay);
+    }
+
+    function clearDates() {
+        document.getElementById('startDate').value = '';
+        document.getElementById('endDate').value = '';
+    }
+
+    function setAllTime() {
+        clearDates();
+    }
+
+    document.getElementById('startDate').addEventListener('change', function() {
+        const startDate = this.value;
+        const endDate = document.getElementById('endDate').value;
+        
+        if (startDate && endDate && startDate > endDate) {
+            alert('Дата початку не може бути пізніше дати кінця!');
+            this.value = '';
+        }
+    });
+
+    document.getElementById('endDate').addEventListener('change', function() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = this.value;
+        
+        if (startDate && endDate && startDate > endDate) {
+            alert('Дата кінця не може бути раніше дати початку!');
+            this.value = '';
+        }
+    });
+</script>

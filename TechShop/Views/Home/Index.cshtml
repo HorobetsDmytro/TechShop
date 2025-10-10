@@ -34,42 +34,6 @@
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="fw-500 mb-2">Колір</label>
-                            <select name="color" class="form-select form-select-sm">
-                                <option value="">Всі кольори</option>
-                                @foreach (var color in ViewBag.Colors)
-                                {
-                                    <option value="@color" selected="@(ViewBag.SelectedColor == color)">@color</option>
-                                }
-                            </select>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="fw-500 mb-2">Розміри</label>
-                            <div class="mb-2">
-                                <label class="form-label small">Ширина (см)</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="number" name="minWidth" class="form-control" placeholder="Від" value="@ViewBag.MinWidth">
-                                    <span class="input-group-text">-</span>
-                                    <input type="number" name="maxWidth" class="form-control" placeholder="До" value="@ViewBag.MaxWidth">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="form-label small">Висота (см)</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="number" name="minHeight" class="form-control" placeholder="Від" value="@ViewBag.MinHeight">
-                                    <span class="input-group-text">-</span>
-                                    <input type="number" name="maxHeight" class="form-control" placeholder="До" value="@ViewBag.MaxHeight">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="fw-500 mb-2">Кількість в упаковці</label>
-                            <input type="number" name="piecesPerPackage" class="form-control form-control-sm" value="@ViewBag.PiecesPerPackage">
-                        </div>
-
                         <div class="mb-4" id="volumeFilter" style="display: none;">
                             <label class="fw-500 mb-2">Об'єм (л)</label>
                             <input type="number" name="volume" class="form-control form-control-sm" value="@ViewBag.Volume">

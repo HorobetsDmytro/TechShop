@@ -1,0 +1,122 @@
+﻿@model TechShop.Models.Product
+@using System.Security.Claims
+@using TechShop.Models
+
+@* <h1>Деталі товару</h1> *@
+
+<div class="container py-5">
+    <div class="card border-0 shadow-sm mb-5">
+        <div class="card-body p-0">
+            <div class="row g-0">
+                <div class="col-lg-6">
+                    <div class="p-4 h-100 d-flex align-items-center justify-content-center bg-light rounded-start">
+                        <img src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid" style="max-height: 400px; object-fit: contain;">
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="p-4">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb small mb-4">
+                                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Головна</a></li>
+                                <li class="breadcrumb-item active">@Model.Name</li>
+                            </ol>
+                        </nav>
+
+                        <h1 class="h3 mb-3">@Model.Name</h1>
+                        <p class="h4 text-primary mb-4">@Model.Price.ToString("C")</p>
+
+                        <div class="mb-4">
+                            @if (Model.StockQuantity > 0)
+                            {
+                                <span class="badge bg-success px-3 py-2 mb-3">В наявності</span>
+                                <div class="alert alert-info small">
+                                    <i class="fas fa-clock me-2"></i>
+                                    <strong>Відправка:</strong> протягом 1-2 робочих днів
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger px-3 py-2 mb-3">Не в наявності</span>
+                                <div class="alert alert-warning small">
+                                    <i class="fas fa-cog me-2"></i>
+                                    <strong>Час виготовлення:</strong> @Model.ProductionTimeDays @(Model.ProductionTimeDays == 1 ? "день" : Model.ProductionTimeDays < 5 ? "дні" : "днів")
+                                </div>
+                            }
+
+                            <p class="text-secondary mb-3">@Model.Description</p>
+                        </div>
+
+                        @if (Model.StockQuantity > 0)
+                        {
+                            <button class="btn btn-primary btn-lg w-100" id="buyNowBtn" data-product-id="@Model.Id">
+                                <i class="fas fa-cart-plus me-2"></i>Додати в кошик
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-warning btn-lg w-100" id="buyNowBtn" data-product-id="@Model.Id">
+                                <i class="fas fa-cart-plus me-2"></i>Замовити (виготовлення @Model.ProductionTimeDays @(Model.ProductionTimeDays == 1 ? "день" : Model.ProductionTimeDays < 5 ? "дні" : "днів"))
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h3 class="h5 mb-0">Коментарі</h3>
+        </div>
+        <div class="card-body">
+            @if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                <div class="mb-4">
+                    <form id="commentForm" class="mb-3">
+                        <div class="form-group">
+                            <textarea id="commentText" class="form-control" rows="3"
+                                      placeholder="Напишіть ваш коментар..."
+                                      style="resize: none;"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">
+                            <i class="fas fa-comment me-2"></i>Додати коментар
+                        </button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-light border">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <a href="/Identity/Account/Login" class="text-decoration-none">Увійдіть</a>, щоб залишити коментар
+                </div>
+            }
+
+            <div id="commentsList">
+                @if (ViewBag.Comments != null)
+                {
+                    foreach (var comment in (IEnumerable<Comment>)ViewBag.Comments)
+                    {
+                        <div class="card border mb-3 hover-shadow" id="comment-@comment.Id">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <h6 class="mb-0">@comment.User.FirstName @comment.User.LastName</h6>
+                                        <small class="text-muted">@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                                    </div>
+                                    @if (User.Identity.IsAuthenticated && User.FindFirstValue(ClaimTypes.NameIdentifier) == comment.UserId)
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm delete-comment" data-comment-id="@comment.Id">
+                                            <i class="fas fa-trash me-1"></i>Видалити
+                                        </button>
+                                    }
+                                </div>
+                                <p class="card-text mb-0">@comment.Text</p>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>

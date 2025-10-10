@@ -1,0 +1,322 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+@using TechShop.Models
+@model TechShop.Models.Order;
+
+@functions {
+    public string GetDisplayName(OrderStatus status)
+    {
+        var field = status.GetType().GetField(status.ToString());
+        var attribute = field?.GetCustomAttribute<DisplayAttribute>();
+        return attribute?.Name ?? status.ToString();
+    }
+
+    public string GetDeliveryMethodName(DeliveryMethod method)
+    {
+        return method switch
+        {
+            DeliveryMethod.SelfPickup => "Самовивіз",
+            DeliveryMethod.NovaPoshta => "Нова Пошта",
+            DeliveryMethod.Courier => "Кур'єрська доставка",
+            _ => "Невідомо"
+        };
+    }
+
+    public string GetDeliveryStatusName(DeliveryStatus status)
+    {
+        return status switch
+        {
+            DeliveryStatus.Pending => "Очікує",
+            DeliveryStatus.Processing => "Обробляється",
+            DeliveryStatus.Shipped => "Відправлено",
+            DeliveryStatus.Delivered => "Доставлено",
+            DeliveryStatus.Cancelled => "Скасовано",
+            _ => "Невідомо"
+        };
+    }
+
+    public string GetPaymentMethodName(PaymentMethod method)
+    {
+        return method switch
+        {
+            PaymentMethod.Cash => "Готівка",
+            PaymentMethod.Card => "Банківська карта",
+            _ => "Невідомо"
+        };
+    }
+
+    public string GetPaymentStatusName(PaymentStatus status)
+    {
+        return status switch
+        {
+            PaymentStatus.Pending => "Очікує",
+            PaymentStatus.Processing => "Обробляється",
+            PaymentStatus.Success => "Успішно",
+            PaymentStatus.Failed => "Неуспішно",
+            PaymentStatus.Cancelled => "Скасовано",
+            _ => "Невідомо"
+        };
+    }
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Деталі замовлення #@Model.Id</h2>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Назад до списку
+            </a>
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shopping-bag me-2"></i>Інформація про замовлення</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Дата:</dt>
+                        <dd class="col-sm-8">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+                        
+                        <dt class="col-sm-4">Користувач:</dt>
+                        <dd class="col-sm-8">@Model.User?.UserName</dd>
+                        
+                        <dt class="col-sm-4">Телефон:</dt>
+                        <dd class="col-sm-8">@Model.User?.PhoneNumber</dd>
+                        
+                        <dt class="col-sm-4">Сума:</dt>
+                        <dd class="col-sm-8"><strong class="text-success">@Model.TotalAmount.ToString("C")</strong></dd>
+                        
+                        <dt class="col-sm-4">Статус:</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge bg-primary">@GetDisplayName((OrderStatus)Model.StatusId)</span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-truck me-2"></i>Інформація про доставку</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Delivery != null)
+                    {
+                        <dl class="row">
+                            <dt class="col-sm-4">Метод:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-info">@GetDeliveryMethodName(Model.Delivery.Method)</span>
+                            </dd>
+                            
+                            <dt class="col-sm-4">Статус:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-secondary">@GetDeliveryStatusName(Model.Delivery.Status)</span>
+                            </dd>
+
+                            @if (Model.Delivery.Method == DeliveryMethod.SelfPickup)
+                            {
+                                <dt class="col-sm-4">Отримувач:</dt>
+                                <dd class="col-sm-8">@Model.Delivery.RecipientName</dd>
+                                
+                                <dt class="col-sm-4">Телефон:</dt>
+                                <dd class="col-sm-8">@Model.Delivery.RecipientPhone</dd>
+                            }
+                            else if (Model.Delivery.Method == DeliveryMethod.NovaPoshta)
+                            {
+                                <dt class="col-sm-4">Отримувач:</dt>
+                                <dd class="col-sm-8">@Model.Delivery.RecipientName</dd>
+                                
+                                <dt class="col-sm-4">Телефон:</dt>
+                                <dd class="col-sm-8">@Model.Delivery.RecipientPhone</dd>
+                                
+                                <dt class="col-sm-4">Місто:</dt>
+                                <dd class="col-sm-8">@Model.Delivery.City</dd>
+                                
+                                <dt class="col-sm-4">Відділення:</dt>
+                                <dd class="col-sm-8">@Model.Delivery.NovaPoshtaBranch</dd>
+                                
+                                @if (!string.IsNullOrEmpty(Model.Delivery.NovaPoshtaTrackingNumber))
+                                {
+                                    <dt class="col-sm-4">ТТН:</dt>
+                                    <dd class="col-sm-8"><code>@Model.Delivery.NovaPoshtaTrackingNumber</code></dd>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(Model.Delivery.Notes))
+                                {
+                                    <dt class="col-sm-4">Примітки:</dt>
+                                    <dd class="col-sm-8">@Model.Delivery.Notes</dd>
+                                }
+                            }
+                            else if (Model.Delivery.Method == DeliveryMethod.Courier)
+                            {
+                                <dt class="col-sm-4">Отримувач:</dt>
+                                <dd class="col-sm-8">@Model.Delivery.RecipientName</dd>
+                                
+                                <dt class="col-sm-4">Телефон:</dt>
+                                <dd class="col-sm-8">@Model.Delivery.RecipientPhone</dd>
+                                
+                                <dt class="col-sm-4">Місто:</dt>
+                                <dd class="col-sm-8">@Model.Delivery.City</dd>
+                                
+                                <dt class="col-sm-4">Адреса:</dt>
+                                <dd class="col-sm-8">@Model.Delivery.Address</dd>
+                                
+                                @if (Model.Delivery.PreferredDeliveryDate.HasValue)
+                                {
+                                    <dt class="col-sm-4">Бажана дата:</dt>
+                                    <dd class="col-sm-8">@Model.Delivery.PreferredDeliveryDate.Value.ToString("dd.MM.yyyy")</dd>
+                                }
+                                
+                                @if (!string.IsNullOrEmpty(Model.Delivery.Notes))
+                                {
+                                    <dt class="col-sm-4">Примітки:</dt>
+                                    <dd class="col-sm-8">@Model.Delivery.Notes</dd>
+                                }
+                            }
+
+                            <dt class="col-sm-4">Вартість доставки:</dt>
+                            <dd class="col-sm-8"><strong>@Model.Delivery.Cost.ToString("C")</strong></dd>
+                        </dl>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Інформація про доставку відсутня</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Інформація про оплату</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Payment != null)
+                    {
+                        <dl class="row">
+                            <dt class="col-sm-4">Метод оплати:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge @(Model.Payment.PaymentMethod == PaymentMethod.Cash ? "bg-warning" : "bg-primary")">
+                                    @GetPaymentMethodName(Model.Payment.PaymentMethod)
+                                </span>
+                            </dd>
+                            
+                            <dt class="col-sm-4">Статус оплати:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge @(Model.Payment.Status == PaymentStatus.Success ? "bg-success" : 
+                                    Model.Payment.Status == PaymentStatus.Failed ? "bg-danger" : "bg-secondary")">
+                                    @GetPaymentStatusName(Model.Payment.Status = PaymentStatus.Success)
+                                </span>
+                            </dd>
+                            
+                            <dt class="col-sm-4">Сума:</dt>
+                            <dd class="col-sm-8"><strong>@Model.Payment.Amount.ToString("C")</strong></dd>
+                            
+                            <dt class="col-sm-4">Дата створення:</dt>
+                            <dd class="col-sm-8">@Model.Payment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</dd>
+                            
+                            @if (Model.Payment.ProcessedAt.HasValue)
+                            {
+                                <dt class="col-sm-4">Дата обробки:</dt>
+                                <dd class="col-sm-8">@Model.Payment.ProcessedAt.Value.ToString("dd.MM.yyyy HH:mm")</dd>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Payment.LiqPayOrderId))
+                            {
+                                <dt class="col-sm-4">ID LiqPay:</dt>
+                                <dd class="col-sm-8"><code>@Model.Payment.LiqPayOrderId</code></dd>
+                            }
+                        </dl>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Інформація про оплату відсутня</p>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Додаткова інформація</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-6">Кількість товарів:</dt>
+                        <dd class="col-sm-6"><strong>@Model.OrderItems.Sum(x => x.Quantity)</strong></dd>
+                        
+                        <dt class="col-sm-6">Типів товарів:</dt>
+                        <dd class="col-sm-6"><strong>@Model.OrderItems.Count()</strong></dd>
+                        
+                        @if (Model.Delivery != null)
+                        {
+                            <dt class="col-sm-6">Дата створення доставки:</dt>
+                            <dd class="col-sm-6">@Model.Delivery.CreatedAt.ToString("dd.MM.yyyy")</dd>
+                            
+                            @if (Model.Delivery.DeliveredAt.HasValue)
+                            {
+                                <dt class="col-sm-6">Доставлено:</dt>
+                                <dd class="col-sm-6">@Model.Delivery.DeliveredAt.Value.ToString("dd.MM.yyyy HH:mm")</dd>
+                            }
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-box me-2"></i>Товари замовлення</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Товар</th>
+                            <th>Кількість</th>
+                            <th>Ціна за одиницю</th>
+                            <th>Загальна сума</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@item.Product.Name</strong>
+                                    @if (!string.IsNullOrEmpty(item.Product.Description))
+                                    {
+                                        <br><small class="text-muted">@item.Product.Description.Substring(0, Math.Min(item.Product.Description.Length, 50))...</small>
+                                    }
+                                </td>
+                                <td><span class="badge bg-secondary">@item.Quantity шт</span></td>
+                                <td>@item.Price.ToString("C")</td>
+                                <td><strong class="text-success">@((item.Quantity * item.Price).ToString("C"))</strong></td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-info">
+                            <th colspan="3">Разом:</th>
+                            <th><strong class="text-success fs-5">@Model.TotalAmount.ToString("C")</strong></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,147 @@
+﻿@using TechShop.Models
+@model IEnumerable<TechShop.Models.Product>
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Фільтри</h5>
+                    <form asp-action="Index" method="get" id="filterForm">
+                        <div class="mb-4">
+                            <label class="form-label">Пошук за назвою</label>
+                            <div class="input-group">
+                                <input type="text" name="searchString" class="form-control"
+                                       placeholder="Введіть назву..." value="@ViewBag.SearchString">
+                                <button class="btn btn-outline-secondary" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="mb-4">
+                            <label class="form-label">Категорія</label>
+                            <select name="categoryId" class="form-select" onchange="this.form.submit()">
+                                <option value="">Всі категорії</option>
+                                @foreach (var category in (List<TechShop.Models.Category>)ViewBag.Categories)
+                                {
+                                    <option value="@category.Id" selected="@(ViewBag.CategoryId == category.Id)">
+                                        @category.Name
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="mb-4">
+                            <label class="form-label">Сортування</label>
+                            <select name="sortOrder" class="form-select" onchange="this.form.submit()">
+                                <option value="" selected="@(ViewBag.CurrentSort == null)">За назвою ↑</option>
+                                <option value="name_desc" selected="@(ViewBag.CurrentSort == "name_desc")">За назвою ↓</option>
+                                <option value="price" selected="@(ViewBag.CurrentSort == "price")">За ціною ↑</option>
+                                <option value="price_desc" selected="@(ViewBag.CurrentSort == "price_desc")">За ціною ↓</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Ціновий діапазон</label>
+                            <div class="row g-2">
+                                <div class="col">
+                                    <input type="number" name="minPrice" class="form-control"
+                                           placeholder="Від" value="@ViewBag.MinPrice">
+                                </div>
+                                <div class="col">
+                                    <input type="number" name="maxPrice" class="form-control"
+                                           placeholder="До" value="@ViewBag.MaxPrice">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-undo me-2"></i>Скинути фільтри
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Товари</h1>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Додати товар
+                </a>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                @foreach (var item in Model)
+                {
+                    var category = ((List<Category>)ViewBag.Categories)?.FirstOrDefault(c => c.Id == item.CategoryId);
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <div class="position-relative">
+                                <img src="@item.ImageUrl" class="card-img-top p-3" style="height: 200px; object-fit: contain;" alt="@item.Name">
+                                @if (item.StockQuantity > 0)
+                                {
+                                    <span class="badge bg-success position-absolute top-0 end-0 m-3">В наявності</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger position-absolute top-0 end-0 m-3">Не в наявності</span>
+                                }
+                            </div>
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">@item.Name</h5>
+                                <ul class="list-unstyled mb-0">
+                                    <li class="mb-2"><strong>Ціна:</strong> @item.Price.ToString("C")</li>
+                                    <li class="mb-2"><strong>Кількість:</strong> @item.StockQuantity</li>
+                                    <li class="mb-2"><strong>Категорія:</strong> @(category?.Name ?? "Не вказано")</li>
+                                </ul>
+                            </div>
+                            <div class="card-footer d-flex justify-content-between">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-edit me-1"></i>Редагувати
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-info-circle me-1"></i>Деталі
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash me-1"></i>Видалити
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (ViewBag.TotalPages > 1)
+            {
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, searchString = ViewBag.SearchString, categoryId = ViewBag.CategoryId, sortOrder = ViewBag.CurrentSort, minPrice = ViewBag.MinPrice, maxPrice = ViewBag.MaxPrice })">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("Index", new { page = i, searchString = ViewBag.SearchString, categoryId = ViewBag.CategoryId, sortOrder = ViewBag.CurrentSort, minPrice = ViewBag.MinPrice, maxPrice = ViewBag.MaxPrice })">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, searchString = ViewBag.SearchString, categoryId = ViewBag.CategoryId, sortOrder = ViewBag.CurrentSort, minPrice = ViewBag.MinPrice, maxPrice = ViewBag.MaxPrice })">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>

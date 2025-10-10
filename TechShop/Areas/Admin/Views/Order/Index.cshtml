@@ -1,0 +1,524 @@
+﻿@model IEnumerable<TechShop.Models.Order>
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+@using TechShop.Models
+
+@{
+    ViewData["Title"] = "Замовлення";
+    var totalOrders = Model.Count();
+    var totalRevenue = Model.Sum(o => o.TotalAmount);
+    var averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    var pendingOrders = Model.Count(o => o.StatusId == 0);
+    var processingOrders = Model.Count(o => o.StatusId == 1);
+    var completedOrders = Model.Count(o => o.StatusId == 2);
+}
+
+@functions {
+    public string GetDisplayName(OrderStatus status)
+    {
+        var field = status.GetType().GetField(status.ToString());
+        var attribute = field?.GetCustomAttribute<DisplayAttribute>();
+        return attribute?.Name ?? status.ToString();
+    }
+
+    public string GetDeliveryMethodName(DeliveryMethod method)
+    {
+        return method switch
+        {
+            DeliveryMethod.SelfPickup => "Самовивіз",
+            DeliveryMethod.NovaPoshta => "Нова Пошта",
+            DeliveryMethod.Courier => "Кур'єр",
+            _ => "Невідомо"
+        };
+    }
+
+    public string GetPaymentMethodName(PaymentMethod method)
+    {
+        return method switch
+        {
+            PaymentMethod.Cash => "Готівка",
+            PaymentMethod.Card => "Карта",
+            _ => "Невідомо"
+        };
+    }
+    
+    public string GetDeliveryStatusName(DeliveryStatus status)
+    {
+        return status switch
+        {
+            DeliveryStatus.Pending => "Очікує відправки",
+            DeliveryStatus.Processing => "Обробляється",
+            DeliveryStatus.Shipped => "Відправлено",
+            DeliveryStatus.Delivered => "Доставлено",
+            DeliveryStatus.Cancelled => "Скасовано",
+            _ => "Невідомий статус"
+        };
+    }
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Замовлення</h2>
+        <div class="d-flex align-items-center gap-3">
+            <form asp-action="Index" method="get" class="d-flex align-items-center">
+                <div class="me-2">
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Всі</option>
+                        @foreach (OrderStatus statusOption in Enum.GetValues<OrderStatus>())
+                        {
+                            <option value="@((int)statusOption)">@GetDisplayName(statusOption)</option>
+                        }
+                    </select>
+                </div>
+                <input type="hidden" name="page" value="1" />
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter me-2"></i>Фільтрувати
+                </button>
+            </form>
+            
+            <div class="dropdown">
+                <button class="btn btn-success dropdown-toggle" type="button" id="reportsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-file-pdf me-2"></i>Звіти
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="reportsDropdown">
+                    <li>
+                        <a class="dropdown-item" asp-action="ReportPeriodSelection">
+                            <i class="fas fa-calendar-alt me-2 text-primary"></i>Звіт за період
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" asp-action="GenerateCompleteReport">
+                            <i class="fas fa-infinity me-2 text-secondary"></i>Повний звіт (весь час)
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="#" onclick="generateTodayReport()">
+                            <i class="fas fa-calendar-day me-2 text-warning"></i>Звіт за сьогодні
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="#" onclick="generateThisMonthReport()">
+                            <i class="fas fa-calendar-alt me-2 text-info"></i>Звіт за цей місяць
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+            <tr>
+                <th>Номер</th>
+                <th>Дата</th>
+                <th>Користувач</th>
+                <th>Сума</th>
+                <th>Статус</th>
+                <th>Доставка</th>
+                <th>Оплата</th>
+                <th>Дії</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td><strong>#@order.Id</strong></td>
+                    <td>@order.CreatedAt.ToShortDateString()</td>
+                    <td>@order.User?.FirstName @order.User?.LastName</td>
+                    <td><strong>@order.TotalAmount.ToString("C")</strong></td>
+                    <td>
+                        <form asp-action="UpdateStatus" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@order.Id" />
+                            <select name="status" onchange="this.form.submit()" class="form-select form-select-sm">
+                                <option value="@order.StatusId" selected disabled>@GetDisplayName((OrderStatus)order.StatusId)</option>
+                                @foreach (OrderStatus statusOption in Enum.GetValues<OrderStatus>())
+                                {
+                                    if ((int)statusOption != order.StatusId)
+                                    {
+                                        <option value="@((int)statusOption)">@GetDisplayName(statusOption)</option>
+                                    }
+                                }
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        @if (order.Delivery != null)
+                        {
+                            <div class="mb-2">
+                                <span class="badge bg-info">@GetDeliveryMethodName(order.Delivery.Method)</span>
+                            </div>
+                        
+                            @if (order.Delivery.Method == DeliveryMethod.SelfPickup)
+                            {
+                            }
+                            else
+                            {
+                                <form asp-action="UpdateDeliveryStatus" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@order.Id" />
+                                    <select name="status" onchange="this.form.submit()" class="form-select form-select-sm">
+                                        <option value="@order.Delivery.Status" selected disabled>@GetDeliveryStatusName(order.Delivery.Status)</option>
+                                        @foreach (DeliveryStatus statusOption in Enum.GetValues<DeliveryStatus>())
+                                        {
+                                            if (statusOption != order.Delivery.Status)
+                                            {
+                                                <option value="@((int)statusOption)">@GetDeliveryStatusName(statusOption)</option>
+                                            }
+                                        }
+                                    </select>
+                                </form>
+                            }
+                        
+                            @if (order.Delivery.Method == DeliveryMethod.NovaPoshta && !string.IsNullOrEmpty(order.Delivery.City))
+                            {
+                                <br><small class="text-muted">@order.Delivery.City</small>
+                            }
+                            else if (order.Delivery.Method == DeliveryMethod.Courier && !string.IsNullOrEmpty(order.Delivery.Address))
+                            {
+                                <br><small class="text-muted">@order.Delivery.Address</small>
+                            }
+                        
+                            @if (!string.IsNullOrEmpty(order.Delivery.CarrierTrackingNumber))
+                            {
+                                <br><small class="text-muted">ТТН: @order.Delivery.CarrierTrackingNumber</small>
+                            }
+                            @if (!string.IsNullOrEmpty(order.Delivery.NovaPoshtaTrackingNumber))
+                            {
+                                <br><small class="text-muted">ТТН НП: @order.Delivery.NovaPoshtaTrackingNumber</small>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">Не вказано</span>
+                        }
+                    </td>
+                    <td>
+                        @if (order.Payment != null)
+                        {
+                            <span class="badge @(order.Payment.PaymentMethod == PaymentMethod.Cash ? "bg-warning" : "bg-primary")">
+                                @GetPaymentMethodName(order.Payment.PaymentMethod)
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Не вказано</span>
+                        }
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-primary btn-sm">
+                            <i class="fas fa-info-circle me-1"></i>Деталі
+                        </a>
+                        <form asp-action="Delete" asp-route-id="@order.Id" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Ви впевнені, що хочете видалити це замовлення?');">
+                                <i class="fas fa-trash me-1"></i>Видалити
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    Показано @(ViewBag.CurrentPage == 1 ? 1 : (ViewBag.CurrentPage - 1) * ViewBag.PageSize + 1) - 
+                    @(Math.Min(ViewBag.CurrentPage * ViewBag.PageSize, ViewBag.TotalItems)) з @ViewBag.TotalItems замовлень
+                </div>
+                
+                <nav aria-label="Навігація по сторінках">
+                    <ul class="pagination mb-0">
+                        @if (ViewBag.CurrentPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(ViewBag.CurrentPage - 1)" asp-route-status="@ViewBag.CurrentStatus">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-chevron-left"></i></span>
+                            </li>
+                        }
+
+                        @{
+                            int startPage = Math.Max(1, ViewBag.CurrentPage - 2);
+                            int endPage = Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2);
+                        }
+
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-action="Index" asp-route-page="1" asp-route-status="@ViewBag.CurrentStatus">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                @if (i == ViewBag.CurrentPage)
+                                {
+                                    <span class="page-link">@i</span>
+                                }
+                                else
+                                {
+                                    <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-status="@ViewBag.CurrentStatus">@i</a>
+                                }
+                            </li>
+                        }
+
+                        @if (endPage < ViewBag.TotalPages)
+                        {
+                            @if (endPage < ViewBag.TotalPages - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" asp-action="Index" asp-route-page="@ViewBag.TotalPages" asp-route-status="@ViewBag.CurrentStatus">@ViewBag.TotalPages</a>
+                            </li>
+                        }
+
+                        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-action="Index" asp-route-page="@(ViewBag.CurrentPage + 1)" asp-route-status="@ViewBag.CurrentStatus">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-chevron-right"></i></span>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="container py-4">
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Всього замовлень</h6>
+                            <h2 class="mb-0 fw-bold">@totalOrders</h2>
+                        </div>
+                        <div class="fs-1 opacity-50">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Загальний дохід</h6>
+                            <h2 class="mb-0 fw-bold">₴@totalRevenue.ToString("N2")</h2>
+                        </div>
+                        <div class="fs-1 opacity-50">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Середнє замовлення</h6>
+                            <h2 class="mb-0 fw-bold">₴@averageOrderValue.ToString("N2")</h2>
+                        </div>
+                        <div class="fs-1 opacity-50">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Очікують обробки</h6>
+                            <h2 class="mb-0 fw-bold">@pendingOrders</h2>
+                        </div>
+                        <div class="fs-1 opacity-50">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Статус замовлень</h5>
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Динаміка продажів</h5>
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const statusCtx = document.getElementById('orderStatusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Нові', 'В обробці', 'Завершені'],
+            datasets: [{
+                data: [@pendingOrders, @processingOrders, @completedOrders],
+                backgroundColor: [
+                    '#ffc107',
+                    '#17a2b8',
+                    '#28a745'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    const salesData = @Html.Raw(Json.Serialize(Model
+        .GroupBy(o => o.CreatedAt.Date)
+        .Select(g => new
+    {
+        date = g.Key.ToString("dd.MM.yyyy"),
+        total = g.Sum(o => o.TotalAmount)
+    })
+        .OrderBy(x => x.date)
+    .Take(7)));
+
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    new Chart(salesCtx, {
+        type: 'line',
+        data: {
+            labels: salesData.map(x => x.date),
+            datasets: [{
+                label: 'Продажі',
+                data: salesData.map(x => x.total),
+                borderColor: '#0d6efd',
+                tension: 0.1,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function (value) {
+                            return '₴' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    function updateStatus(orderId, status) {
+        if (!confirm('Ви впевнені, що хочете змінити статус замовлення?')) {
+            return;
+        }
+
+        $.post('/Order/UpdateStatus', { id: orderId, status: status })
+            .done(function () {
+                location.reload();
+            })
+            .fail(function () {
+                alert('Помилка при оновленні статусу');
+            });
+    }
+
+    /**
+     * ВИПРАВЛЕНА ФУНКЦІЯ
+     * Форматує дату в 'YYYY-MM-DD', ігноруючи часові пояси.
+     */
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function generateTodayReport() {
+        const today = new Date();
+        const todayStr = formatDate(today);
+        window.location.href = `/Order/GenerateCompleteReport?startDate=${todayStr}&endDate=${todayStr}`;
+    }
+
+    function generateThisMonthReport() {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+        const startStr = formatDate(firstDay);
+        const endStr = formatDate(lastDay);
+        window.location.href = `/Order/GenerateCompleteReport?startDate=${startStr}&endDate=${endStr}`;
+    }
+
+    function generateThisYearReport() {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), 0, 1);
+        const lastDay = new Date(today.getFullYear(), 11, 31);
+
+        const startStr = formatDate(firstDay);
+        const endStr = formatDate(lastDay);
+        window.location.href = `/Order/GenerateCompleteReport?startDate=${startStr}&endDate=${endStr}`;
+    }
+</script>
+}

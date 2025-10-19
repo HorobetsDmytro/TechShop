@@ -50,43 +50,7 @@
                 </select>
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Color" class="control-label">Колір</label>
-                <input asp-for="Color" class="form-control" />
-                <span asp-validation-for="Color" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Width" class="control-label">Ширина (см)</label>
-                <input asp-for="Width" class="form-control" type="number" min="1" />
-                <span asp-validation-for="Width" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Height" class="control-label">Висота (см)</label>
-                <input asp-for="Height" class="form-control" type="number" min="1" />
-                <span asp-validation-for="Height" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="Density" class="control-label">Мікрони </label>
-                <input asp-for="Density" class="form-control" type="number" />
-                <span asp-validation-for="Density" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="PiecesPerPackage" class="control-label">Кількість штук в упаковці</label>
-                <input asp-for="PiecesPerPackage" class="form-control" type="number" min="1" />
-                <span asp-validation-for="PiecesPerPackage" class="text-danger"></span>
-            </div>
-
-            <div class="form-group mb-3" id="volumeGroup" style="display: none;">
-                <label asp-for="Volume" class="control-label">Об'єм (л)</label>
-                <input asp-for="Volume" class="form-control" type="number" min="0" />
-                <span asp-validation-for="Volume" class="text-danger"></span>
-            </div>
-
+            
             <div class="form-group mb-3">
                 <label asp-for="ProductionTimeDays" class="control-label">Час виготовлення (днів)</label>
                 <input asp-for="ProductionTimeDays" class="form-control" type="number" min="1" max="365" value="3" />
@@ -102,6 +66,7 @@
     </div>
 </div>
 
+@section Scripts {
 @{
 await Html.RenderPartialAsync("_ValidationScriptsPartial");
 }
@@ -119,21 +84,6 @@ await Html.RenderPartialAsync("_ValidationScriptsPartial");
                 reader.readAsDataURL(this.files[0]);
             }
         });
-
-        function updateVolumeField() {
-            var selectedCategory = $('#categorySelect option:selected').text();
-            if (selectedCategory === "Пакети для сміття") {
-                $('#volumeGroup').show();
-                $('#Volume').prop('required', true);
-            } else {
-                $('#volumeGroup').hide();
-                $('#Volume').prop('required', false);
-                $('#Volume').val('');
-            }
-        }
-
-        $('#categorySelect').change(updateVolumeField);
-        updateVolumeField();
     });
 </script>
 }

@@ -2,9 +2,9 @@
 
 <h1>Категорії</h1>
 
-<p>
-    <a asp-action="Create">Додати нову</a>
-</p>
+<a href="@Url.Action("Create", "Category", new { area = "Admin" })" class="btn btn-primary">
+    <i class="fas fa-plus me-2"></i>Додати нову
+</a>
 <table class="table">
     <thead>
         <tr>
@@ -18,9 +18,9 @@
             <tr>
                 <td>@item.Name</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Редагувати</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Деталі</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Видалити</a>
+                    <a href="@Url.Action("Edit", "Category", new { area = "Admin", id = item.Id })" class="btn btn-sm btn-warning">Редагувати</a>
+                    <a href="@Url.Action("Details", "Category", new { area = "Admin", id = item.Id })" class="btn btn-sm btn-info">Деталі</a>
+                    <a href="@Url.Action("Delete", "Category", new { area = "Admin", id = item.Id })" class="btn btn-sm btn-danger">Видалити</a>
                 </td>
             </tr>
         }

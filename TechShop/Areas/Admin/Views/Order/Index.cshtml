@@ -1,7 +1,6 @@
 ﻿@model IEnumerable<TechShop.Models.Order>
 @using System.ComponentModel.DataAnnotations
 @using System.Reflection
-@using TechShop.Models
 
 @{
     ViewData["Title"] = "Замовлення";
@@ -14,14 +13,14 @@
 }
 
 @functions {
-    public string GetDisplayName(OrderStatus status)
+    private static string GetDisplayName(OrderStatus status)
     {
         var field = status.GetType().GetField(status.ToString());
         var attribute = field?.GetCustomAttribute<DisplayAttribute>();
         return attribute?.Name ?? status.ToString();
     }
 
-    public string GetDeliveryMethodName(DeliveryMethod method)
+    private static string GetDeliveryMethodName(DeliveryMethod method)
     {
         return method switch
         {
@@ -32,7 +31,7 @@
         };
     }
 
-    public string GetPaymentMethodName(PaymentMethod method)
+    private static string GetPaymentMethodName(PaymentMethod method)
     {
         return method switch
         {
@@ -42,7 +41,7 @@
         };
     }
     
-    public string GetDeliveryStatusName(DeliveryStatus status)
+    private static string GetDeliveryStatusName(DeliveryStatus status)
     {
         return status switch
         {
@@ -483,10 +482,6 @@
             });
     }
 
-    /**
-     * ВИПРАВЛЕНА ФУНКЦІЯ
-     * Форматує дату в 'YYYY-MM-DD', ігноруючи часові пояси.
-     */
     function formatDate(date) {
         const year = date.getFullYear();
         const month = (date.getMonth() + 1).toString().padStart(2, '0');

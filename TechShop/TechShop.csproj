@@ -21,9 +21,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Areas\Admin\Models\" />
-      <Folder Include="Areas\Admin\Views\" />
       <Folder Include="Areas\Identity\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Areas\Admin\Views\Shared\_Layout.cshtml" />
     </ItemGroup>
 
 </Project>

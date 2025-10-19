@@ -43,42 +43,6 @@
     </div>
 
     <div class="form-group mb-3">
-        <label asp-for="Color" class="control-label">Колір</label>
-        <input asp-for="Color" class="form-control" />
-        <span asp-validation-for="Color" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="Width" class="control-label">Ширина (см)</label>
-        <input asp-for="Width" class="form-control" type="number" />
-        <span asp-validation-for="Width" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="Height" class="control-label">Висота (см)</label>
-        <input asp-for="Height" class="form-control" type="number" />
-        <span asp-validation-for="Height" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="Density" class="control-label">Мікрони</label>
-        <input asp-for="Density" class="form-control" type="number" />
-        <span asp-validation-for="Density" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="PiecesPerPackage" class="control-label">Кількість штук в упаковці</label>
-        <input asp-for="PiecesPerPackage" class="form-control" type="number" />
-        <span asp-validation-for="PiecesPerPackage" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3" id="volumeGroup">
-        <label asp-for="Volume" class="control-label">Об'єм (л)</label>
-        <input asp-for="Volume" class="form-control" type="number" />
-        <span asp-validation-for="Volume" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
         <label asp-for="ProductionTimeDays" class="control-label">Час виготовлення (днів)</label>
         <input asp-for="ProductionTimeDays" class="form-control" type="number" min="1" max="365" />
         <small class="form-text text-muted">Вкажіть скільки днів потрібно для виготовлення товару, якщо його немає на складі</small>
@@ -94,21 +58,3 @@
 @{
     await Html.RenderPartialAsync("_ValidationScriptsPartial");
 }
-<script>
-    $(document).ready(function () {
-        function updateVolumeVisibility() {
-            var selectedOption = $('#categorySelect option:selected').text();
-            if (selectedOption === "Пакети для сміття") {
-                $('#volumeGroup').show();
-                $('#Volume').attr('required', 'required');
-            } else {
-                $('#volumeGroup').hide();
-                $('#Volume').removeAttr('required');
-                $('#Volume').val('');
-            }
-        }
-
-        $('#categorySelect').change(updateVolumeVisibility);
-        updateVolumeVisibility();
-    });
-</script>

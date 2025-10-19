@@ -11,7 +11,13 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Index">Повернутися до списку</a>
-    <a asp-action="Delete" asp-route-id="@Model.Id">Delete</a>
+    <a href="@Url.Action("Edit", "Category", new { area = "Admin", id = Model.Id })" class="btn btn-warning btn-sm">
+        Редагувати
+    </a> |
+    <a href="@Url.Action("Index", "Category", new { area = "Admin" })" class="btn btn-secondary btn-sm">
+        Повернутися до списку
+    </a> |
+    <a href="@Url.Action("Delete", "Category", new { area = "Admin", id = Model.Id })" class="btn btn-danger btn-sm">
+        Видалити
+    </a>
 </div>

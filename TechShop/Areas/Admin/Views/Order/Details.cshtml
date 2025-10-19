@@ -1,17 +1,16 @@
 ﻿@using System.ComponentModel.DataAnnotations
 @using System.Reflection
-@using TechShop.Models
 @model TechShop.Models.Order;
 
 @functions {
-    public string GetDisplayName(OrderStatus status)
+    private static string GetDisplayName(OrderStatus status)
     {
         var field = status.GetType().GetField(status.ToString());
         var attribute = field?.GetCustomAttribute<DisplayAttribute>();
         return attribute?.Name ?? status.ToString();
     }
 
-    public string GetDeliveryMethodName(DeliveryMethod method)
+    private static string GetDeliveryMethodName(DeliveryMethod method)
     {
         return method switch
         {
@@ -22,7 +21,7 @@
         };
     }
 
-    public string GetDeliveryStatusName(DeliveryStatus status)
+    private static string GetDeliveryStatusName(DeliveryStatus status)
     {
         return status switch
         {
@@ -35,7 +34,7 @@
         };
     }
 
-    public string GetPaymentMethodName(PaymentMethod method)
+    private static string GetPaymentMethodName(PaymentMethod method)
     {
         return method switch
         {
@@ -45,7 +44,7 @@
         };
     }
 
-    public string GetPaymentStatusName(PaymentStatus status)
+    private static string GetPaymentStatusName(PaymentStatus status)
     {
         return status switch
         {

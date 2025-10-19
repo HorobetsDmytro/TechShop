@@ -2,18 +2,20 @@
 
 <h1>Редагувати категорію</h1>
 
-<form asp-action="Edit">
+<form asp-area="Admin" asp-controller="Category" asp-action="Edit" method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
     <input type="hidden" asp-for="Id" />
     <div class="form-group">
-        <label asp-for="Name" class="control-label"></label>
+        <label asp-for="Name" class="control-label">Назва</label>
         <input asp-for="Name" class="form-control" />
         <span asp-validation-for="Name" class="text-danger"></span>
     </div>
-    <div class="form-group">
-        <input type="submit" value="Save" class="btn btn-primary" />
+    <div class="form-group mt-3"> <input type="submit" value="Зберегти" class="btn btn-primary" />
     </div>
 </form>
 
 <div>
-    <a asp-action="Index">Повернутися до списку</a>
+    <a href="@Url.Action("Index", "Category", new { area = "Admin" })" class="btn btn-secondary mt-3">
+        Повернутися до списку
+    </a>
 </div>

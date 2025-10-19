@@ -91,26 +91,24 @@
     </div>
 </form>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script>
-        $(document).ready(function () {
-            function updateVolumeVisibility() {
-                var selectedOption = $('#categorySelect option:selected').text();
-                if (selectedOption === "Пакети для сміття") {
-                    $('#volumeGroup').show();
-                    $('#Volume').attr('required', 'required');
-                } else {
-                    $('#volumeGroup').hide();
-                    $('#Volume').removeAttr('required');
-                    $('#Volume').val('');
-                }
-            }
-
-            $('#categorySelect').change(updateVolumeVisibility);
-            updateVolumeVisibility();
-        });
-    </script>
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
 }
+<script>
+    $(document).ready(function () {
+        function updateVolumeVisibility() {
+            var selectedOption = $('#categorySelect option:selected').text();
+            if (selectedOption === "Пакети для сміття") {
+                $('#volumeGroup').show();
+                $('#Volume').attr('required', 'required');
+            } else {
+                $('#volumeGroup').hide();
+                $('#Volume').removeAttr('required');
+                $('#Volume').val('');
+            }
+        }
+
+        $('#categorySelect').change(updateVolumeVisibility);
+        updateVolumeVisibility();
+    });
+</script>

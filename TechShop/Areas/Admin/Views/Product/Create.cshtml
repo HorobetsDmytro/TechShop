@@ -50,13 +50,6 @@
                 </select>
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
-            
-            <div class="form-group mb-3">
-                <label asp-for="ProductionTimeDays" class="control-label">Час виготовлення (днів)</label>
-                <input asp-for="ProductionTimeDays" class="form-control" type="number" min="1" max="365" value="3" />
-                <small class="form-text text-muted">Вкажіть скільки днів потрібно для виготовлення товару, якщо його немає на складі</small>
-                <span asp-validation-for="ProductionTimeDays" class="text-danger"></span>
-            </div>
 
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">Створити</button>

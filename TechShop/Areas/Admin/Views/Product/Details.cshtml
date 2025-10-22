@@ -33,30 +33,13 @@
                                     <strong>Відправка:</strong> протягом 1-2 робочих днів
                                 </div>
                             }
-                            else
-                            {
-                                <span class="badge bg-danger px-3 py-2 mb-3">Не в наявності</span>
-                                <div class="alert alert-warning small">
-                                    <i class="fas fa-cog me-2"></i>
-                                    <strong>Час виготовлення:</strong> @Model.ProductionTimeDays @(Model.ProductionTimeDays == 1 ? "день" : Model.ProductionTimeDays < 5 ? "дні" : "днів")
-                                </div>
-                            }
 
                             <p class="text-secondary mb-3">@Model.Description</p>
                         </div>
 
-                        @if (Model.StockQuantity > 0)
-                        {
-                            <button class="btn btn-primary btn-lg w-100" id="buyNowBtn" data-product-id="@Model.Id">
-                                <i class="fas fa-cart-plus me-2"></i>Додати в кошик
-                            </button>
-                        }
-                        else
-                        {
-                            <button class="btn btn-warning btn-lg w-100" id="buyNowBtn" data-product-id="@Model.Id">
-                                <i class="fas fa-cart-plus me-2"></i>Замовити (виготовлення @Model.ProductionTimeDays @(Model.ProductionTimeDays == 1 ? "день" : Model.ProductionTimeDays < 5 ? "дні" : "днів"))
-                            </button>
-                        }
+                        <button class="btn btn-primary btn-lg w-100" id="buyNowBtn" data-product-id="@Model.Id">
+                            <i class="fas fa-cart-plus me-2"></i>Додати в кошик
+                        </button>
                     </div>
                 </div>
             </div>

@@ -23,9 +23,4 @@ public class Product
 
     [Required(ErrorMessage = "Категорія обов'язкова")]
     public int CategoryId { get; set; }
-
-    [Required(ErrorMessage = "Час виготовлення обов'язковий")]
-    [Range(1, 365, ErrorMessage = "Час виготовлення повинен бути від 1 до 365 днів")]
-    [Display(Name = "Час виготовлення (днів)")]
-    public int ProductionTimeDays { get; set; } = 3;
 }

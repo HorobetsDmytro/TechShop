@@ -33,19 +33,6 @@
                             }
 
                             <p class="text-secondary mb-3">@Model.Description</p>
-
-                            <div class="product-details small">
-                                <div class="row">
-                                    @if (Model.StockQuantity <= 0)
-                                    {
-                                        <div class="text-warning fw-medium mt-2">
-                                            <i class="fas fa-clock me-1"></i>
-                                            Термін виготовлення: @Model.ProductionTimeDays 
-                                            @(Model.ProductionTimeDays == 1 ? "день" : Model.ProductionTimeDays < 5 ? "дні" : "днів")
-                                        </div>
-                                    }
-                                </div>
-                            </div>
                         </div>
 
                         @if (Model.StockQuantity > 0)

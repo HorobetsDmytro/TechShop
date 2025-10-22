@@ -47,6 +47,8 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IDeliveryRepository, DeliveryRepository>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.Configure<LiqPaySettings>(builder.Configuration.GetSection("LiqPaySettings"));
+builder.Services.AddScoped<ILiqPayService, LiqPayService>();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();

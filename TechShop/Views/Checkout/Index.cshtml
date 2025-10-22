@@ -1,28 +1,24 @@
 ﻿@model TechShop.ViewModels.CheckoutViewModel
 @{
-ViewData["Title"] = "Оформлення замовлення";
+    ViewData["Title"] = "Оформлення замовлення";
 
-// Розрахунок часу виготовлення для товарів у кошику
-int maxProductionDays = 0;
-bool hasOutOfStockItems = false;
+    // Розрахунок часу виготовлення для товарів у кошику
+    int maxProductionDays = 0;
+    bool hasOutOfStockItems = false;
 
-if (Model.Cart?.Items?.Any() == true)
-{
-foreach (var item in Model.Cart.Items)
-{
-if (item.Product != null)
-{
-if (item.Product.StockQuantity <= 0)
-{
-hasOutOfStockItems = true;
-if (item.Product.ProductionTimeDays > maxProductionDays)
-{
-maxProductionDays = item.Product.ProductionTimeDays;
-}
-}
-}
-}
-}
+    if (Model.Cart?.Items?.Any() == true)
+    {
+        foreach (var item in Model.Cart.Items)
+            {
+                if (item.Product != null)
+                {
+                    if (item.Product.StockQuantity <= 0)
+                    {
+                    hasOutOfStockItems = true;
+                }
+            }
+        }
+    }
 }
 
 <div class="container">

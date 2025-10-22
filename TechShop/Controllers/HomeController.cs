@@ -27,7 +27,8 @@ namespace TechShop.Controllers
         }
 
         public IActionResult Index(int page = 1, string sortOrder = "", int? categoryId = null,
-                                   double? minPrice = null, double? maxPrice = null, string searchTerm = "")
+                                   double? minPrice = null, double? maxPrice = null, string searchTerm = "",
+                                   bool inStockOnly = false, double? volume = null)
         {
             const int pageSize = 9;
 
@@ -50,29 +51,34 @@ namespace TechShop.Controllers
                 query = query.Where(p => p.Price <= maxPrice.Value);
             }
 
+            if (inStockOnly)
+            {
+                query = query.Where(p => p.StockQuantity > 0);
+            }
+            
             query = sortOrder switch
             {
                 "price_asc" => query.OrderBy(p => p.Price),
                 "price_desc" => query.OrderByDescending(p => p.Price),
+                "name_desc" => query.OrderByDescending(p => p.Name),
                 _ => query.OrderBy(p => p.Name)
             };
 
             var totalItems = query.Count();
             var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
             var products = query.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            var allProducts = _productRepository.GetProduct();
-            var minPriceInDb = allProducts.Any() ? allProducts.Min(p => p.Price) : 0;
-            var maxPriceInDb = allProducts.Any() ? allProducts.Max(p => p.Price) : 0;
-
+            
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.SortOrder = sortOrder;
             ViewBag.CategoryId = categoryId;
-            ViewBag.MinPrice = minPrice ?? minPriceInDb;
-            ViewBag.MaxPrice = maxPrice ?? maxPriceInDb;
+            ViewBag.MinPrice = minPrice; 
+            ViewBag.MaxPrice = maxPrice;
             ViewBag.SearchTerm = searchTerm;
             ViewBag.Categories = _categoryRepository.GetAll();
+            
+            ViewBag.InStockOnly = inStockOnly;
+            ViewBag.Volume = volume;
 
             return View(products);
         }

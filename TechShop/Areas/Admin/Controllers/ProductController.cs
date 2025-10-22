@@ -18,7 +18,6 @@ public class ProductController : Controller
         _categoryRepository = categoryRepository;
     }
 
-
     public IActionResult Index(string searchString, int? categoryId, string sortOrder, double? minPrice, double? maxPrice, int page = 1)
     {
         var products = _productRepository.GetAll();
@@ -106,7 +105,7 @@ public class ProductController : Controller
 
             if (ModelState.IsValid)
             {
-                var fileName = Guid.NewGuid().ToString() + fileExtension;
+                var fileName = Guid.NewGuid() + fileExtension;
 
                 var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "products");
 

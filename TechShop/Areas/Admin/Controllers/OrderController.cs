@@ -120,115 +120,124 @@ public class OrderController : Controller
         }
         
         var filteredOrders = orders.ToList();
-        
-        using (var stream = new MemoryStream())
+
+        using var stream = new MemoryStream();
+        var document = new Document(PageSize.A4, 25, 25, 30, 30);
+        document.Open();
+            
+        var fontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts", "arial.ttf");
+        var baseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            
+        var titleFont = new Font(baseFont, 20, Font.BOLD, new BaseColor(52, 58, 64));
+        var title = new Paragraph("ПОВНИЙ ЗВІТ ПО ПРОДАЖАМ ТА ДОСТАВЦІ", titleFont)
         {
-            var document = new Document(PageSize.A4, 25, 25, 30, 30);
-            var writer = PdfWriter.GetInstance(document, stream);
-            document.Open();
+            Alignment = Element.ALIGN_CENTER,
+            SpacingAfter = 10
+        };
+        document.Add(title);
+
+        var subtitleFont = new Font(baseFont, 12, Font.NORMAL, new BaseColor(108, 117, 125));
             
-            string fontPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts", "arial.ttf");
-            BaseFont baseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-            
-            var titleFont = new Font(baseFont, 20, Font.BOLD, new BaseColor(52, 58, 64));
-            var title = new Paragraph("ПОВНИЙ ЗВІТ ПО ПРОДАЖАМ ТА ДОСТАВЦІ", titleFont);
-            title.Alignment = Element.ALIGN_CENTER;
-            title.SpacingAfter = 10;
-            document.Add(title);
-
-            var subtitleFont = new Font(baseFont, 12, Font.NORMAL, new BaseColor(108, 117, 125));
-            
-            var periodText = "";
-            if (startDate.HasValue && endDate.HasValue)
-            {
-                periodText = $"Період: {startDate.Value:dd.MM.yyyy} - {endDate.Value:dd.MM.yyyy}";
-            }
-            else if (startDate.HasValue)
-            {
-                periodText = $"Період: з {startDate.Value:dd.MM.yyyy}";
-            }
-            else if (endDate.HasValue)
-            {
-                periodText = $"Період: до {endDate.Value:dd.MM.yyyy}";
-            }
-            else
-            {
-                periodText = "Період: За весь час";
-            }
-            
-            var periodParagraph = new Paragraph(periodText, subtitleFont);
-            periodParagraph.Alignment = Element.ALIGN_CENTER;
-            periodParagraph.SpacingAfter = 5;
-            document.Add(periodParagraph);
-            
-            var dateText = new Paragraph($"Згенеровано: {DateTime.Now:dd MMMM yyyy р. о HH:mm}", subtitleFont)
-                {
-                    Alignment = Element.ALIGN_CENTER,
-                    SpacingAfter = 25
-                };
-            document.Add(dateText);
-
-            var headerFont = new Font(baseFont, 16, Font.BOLD, new BaseColor(52, 58, 64));
-            var statsHeader = new Paragraph("ЗАГАЛЬНА СТАТИСТИКА", headerFont);
-            statsHeader.SpacingAfter = 15;
-            document.Add(statsHeader);
-
-            var totalOrders = filteredOrders.Count();
-            var totalRevenue = filteredOrders.Sum(o => o.TotalAmount);
-            var averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-            var ordersWithDelivery = filteredOrders.Where(o => o.Delivery != null).ToList();
-            
-            var deliveredCount = ordersWithDelivery.Count(o => o.Delivery.Status == DeliveryStatus.Delivered);
-            var pendingCount = ordersWithDelivery.Count(o => o.Delivery.Status == DeliveryStatus.Pending);
-
-            var summaryTable = new PdfPTable(4);
-            summaryTable.WidthPercentage = 100;
-            summaryTable.SetWidths(new float[] { 1, 1, 1, 1 });
-            summaryTable.SpacingAfter = 20;
-
-            var cardHeaderFont = new Font(baseFont, 10, Font.BOLD, BaseColor.WHITE);
-            var cardBigFont = new Font(baseFont, 20, Font.BOLD, BaseColor.WHITE);
-            var cardMediumFont = new Font(baseFont, 16, Font.BOLD, BaseColor.WHITE);
-
-            AddSummaryCard(summaryTable, "ВСЬОГО ЗАМОВЛЕНЬ", totalOrders.ToString(), new BaseColor(40, 167, 69), cardHeaderFont, cardBigFont);
-            AddSummaryCard(summaryTable, "ЗАГАЛЬНИЙ ДОХІД", $"₴{totalRevenue:N2}", new BaseColor(0, 123, 255), cardHeaderFont, cardMediumFont);
-            AddSummaryCard(summaryTable, "СЕРЕДНІЙ ЧЕК", $"₴{averageOrderValue:N2}", new BaseColor(23, 162, 184), cardHeaderFont, cardMediumFont);
-            AddSummaryCard(summaryTable, "ДОСТАВЛЕНО", deliveredCount.ToString(), new BaseColor(255, 193, 7), cardHeaderFont, cardBigFont);
-
-            document.Add(summaryTable);
-
-            AddPeriodStatistics(document, filteredOrders, headerFont, baseFont);
-            AddProductStatistics(document, filteredOrders, headerFont, baseFont);
-            AddOrderStatistics(document, filteredOrders, headerFont, baseFont);
-            AddPaymentStatistics(document, filteredOrders, headerFont, baseFont);
-            AddDeliveryStatistics(document, ordersWithDelivery, headerFont, baseFont);
-            AddCustomerStatistics(document, filteredOrders, headerFont, baseFont);
-            AddTopProducts(document, filteredOrders, headerFont, baseFont);
-            
-            AddUnpurchasedProducts(document, filteredOrders, headerFont, baseFont);
-            
-            AddRecentOrders(document, filteredOrders, headerFont, baseFont);
-
-            document.Add(new Paragraph(" "));
-            var footerFont = new Font(baseFont, 8, Font.NORMAL, new BaseColor(108, 117, 125));
-            var footer = new Paragraph($"Звіт створено автоматично системою управління замовленнями • {DateTime.Now:dd.MM.yyyy HH:mm}", footerFont);
-            footer.Alignment = Element.ALIGN_CENTER;
-            document.Add(footer);
-
-            document.Close();
-
-            var fileName = startDate.HasValue || endDate.HasValue 
-                ? $"CompleteReport_{startDate?.ToString("yyyyMMdd") ?? "start"}_{endDate?.ToString("yyyyMMdd") ?? "end"}_{DateTime.Now:HHmmss}.pdf"
-                : $"CompleteReport_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
-                
-            return File(stream.ToArray(), "application/pdf", fileName);
+        string periodText;
+        if (startDate.HasValue && endDate.HasValue)
+        {
+            periodText = $"Період: {startDate.Value:dd.MM.yyyy} - {endDate.Value:dd.MM.yyyy}";
         }
+        else if (startDate.HasValue)
+        {
+            periodText = $"Період: з {startDate.Value:dd.MM.yyyy}";
+        }
+        else if (endDate.HasValue)
+        {
+            periodText = $"Період: до {endDate.Value:dd.MM.yyyy}";
+        }
+        else
+        {
+            periodText = "Період: За весь час";
+        }
+            
+        var periodParagraph = new Paragraph(periodText, subtitleFont)
+        {
+            Alignment = Element.ALIGN_CENTER,
+            SpacingAfter = 5
+        };
+        document.Add(periodParagraph);
+            
+        var dateText = new Paragraph($"Згенеровано: {DateTime.Now:dd MMMM yyyy р. о HH:mm}", subtitleFont)
+        {
+            Alignment = Element.ALIGN_CENTER,
+            SpacingAfter = 25
+        };
+        document.Add(dateText);
+
+        var headerFont = new Font(baseFont, 16, Font.BOLD, new BaseColor(52, 58, 64));
+        var statsHeader = new Paragraph("ЗАГАЛЬНА СТАТИСТИКА", headerFont)
+        {
+            SpacingAfter = 15
+        };
+        document.Add(statsHeader);
+
+        var totalOrders = filteredOrders.Count;
+        var totalRevenue = filteredOrders.Sum(o => o.TotalAmount);
+        var averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+        var ordersWithDelivery = filteredOrders.Where(o => o.Delivery != null).ToList();
+            
+        var deliveredCount = ordersWithDelivery.Count(o => o.Delivery.Status == DeliveryStatus.Delivered);
+        var pendingCount = ordersWithDelivery.Count(o => o.Delivery.Status == DeliveryStatus.Pending);
+
+        var summaryTable = new PdfPTable(4)
+        {
+            WidthPercentage = 100
+        };
+        summaryTable.SetWidths(new float[] { 1, 1, 1, 1 });
+        summaryTable.SpacingAfter = 20;
+
+        var cardHeaderFont = new Font(baseFont, 10, Font.BOLD, BaseColor.WHITE);
+        var cardBigFont = new Font(baseFont, 20, Font.BOLD, BaseColor.WHITE);
+        var cardMediumFont = new Font(baseFont, 16, Font.BOLD, BaseColor.WHITE);
+
+        AddSummaryCard(summaryTable, "ВСЬОГО ЗАМОВЛЕНЬ", totalOrders.ToString(), new BaseColor(40, 167, 69), cardHeaderFont, cardBigFont);
+        AddSummaryCard(summaryTable, "ЗАГАЛЬНИЙ ДОХІД", $"₴{totalRevenue:N2}", new BaseColor(0, 123, 255), cardHeaderFont, cardMediumFont);
+        AddSummaryCard(summaryTable, "СЕРЕДНІЙ ЧЕК", $"₴{averageOrderValue:N2}", new BaseColor(23, 162, 184), cardHeaderFont, cardMediumFont);
+        AddSummaryCard(summaryTable, "ДОСТАВЛЕНО", deliveredCount.ToString(), new BaseColor(255, 193, 7), cardHeaderFont, cardBigFont);
+
+        document.Add(summaryTable);
+
+        AddPeriodStatistics(document, filteredOrders, headerFont, baseFont);
+        AddProductStatistics(document, filteredOrders, headerFont, baseFont);
+        AddOrderStatistics(document, filteredOrders, headerFont, baseFont);
+        AddPaymentStatistics(document, filteredOrders, headerFont, baseFont);
+        AddDeliveryStatistics(document, ordersWithDelivery, headerFont, baseFont);
+        AddCustomerStatistics(document, filteredOrders, headerFont, baseFont);
+        AddTopProducts(document, filteredOrders, headerFont, baseFont);
+            
+        AddUnpurchasedProducts(document, filteredOrders, headerFont, baseFont);
+            
+        AddRecentOrders(document, filteredOrders, headerFont, baseFont);
+
+        document.Add(new Paragraph(" "));
+        var footerFont = new Font(baseFont, 8, Font.NORMAL, new BaseColor(108, 117, 125));
+        var footer = new Paragraph($"Звіт створено автоматично системою управління замовленнями • {DateTime.Now:dd.MM.yyyy HH:mm}", footerFont)
+            {
+                Alignment = Element.ALIGN_CENTER
+            };
+        document.Add(footer);
+
+        document.Close();
+
+        var fileName = startDate.HasValue || endDate.HasValue 
+            ? $"CompleteReport_{startDate?.ToString("yyyyMMdd") ?? "start"}_{endDate?.ToString("yyyyMMdd") ?? "end"}_{DateTime.Now:HHmmss}.pdf"
+            : $"CompleteReport_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+                
+        return File(stream.ToArray(), "application/pdf", fileName);
     }
 
     private void AddUnpurchasedProducts(Document document, IEnumerable<Order> orders, Font headerFont, BaseFont baseFont)
     {
-        var unpurchasedHeader = new Paragraph("НЕПРОДАНІ ПРОДУКТИ", headerFont);
-        unpurchasedHeader.SpacingAfter = 15;
+        var unpurchasedHeader = new Paragraph("НЕПРОДАНІ ПРОДУКТИ", headerFont)
+        {
+            SpacingAfter = 15
+        };
         document.Add(unpurchasedHeader);
 
         var allProducts =  _productRepository.GetAll();
@@ -267,7 +276,6 @@ public class OrderController : Controller
         AddTableHeader(unpurchasedTable, new[] { "ID", "Назва товару", "Ціна" }, tableHeaderFont, new BaseColor(220, 53, 69));
 
         var isEvenRow = false;
-        var count = 0;
         foreach (var product in unpurchasedProducts.Take(50))
         {
             var backgroundColor = isEvenRow ? new BaseColor(248, 249, 250) : BaseColor.WHITE;
@@ -277,7 +285,6 @@ public class OrderController : Controller
             AddDetailCell(unpurchasedTable, $"₴{product.Price:F2}", tableCellFont, backgroundColor);
             
             isEvenRow = !isEvenRow;
-            count++;
         }
 
         document.Add(unpurchasedTable);

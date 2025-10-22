@@ -4,6 +4,18 @@
     int currentPage = ViewBag.CurrentPage;
     int totalPages = ViewBag.TotalPages;
     var categories = ViewBag.Categories as IEnumerable<Category>;
+
+    var routeData = new Dictionary<string, string>
+    {
+        { "page", "1" },
+        { "sortOrder", ViewBag.SortOrder ?? "" },
+        { "categoryId", ViewBag.CategoryId?.ToString() ?? "" },
+        { "minPrice", ViewBag.MinPrice?.ToString() ?? "" },
+        { "maxPrice", ViewBag.MaxPrice?.ToString() ?? "" },
+        { "searchTerm", ViewBag.SearchTerm ?? "" },
+        { "inStockOnly", ViewBag.InStockOnly.ToString() },
+        { "volume", ViewBag.Volume?.ToString() ?? "" }
+    };
 }
 
 <div class="container py-4">
@@ -13,6 +25,21 @@
                 <div class="card-body">
                     <form asp-action="Index" method="get" id="filterForm">
                         <h5 class="fw-bold mb-4">Фільтри</h5>
+
+                        <div class="mb-4">
+                            <label class="fw-500 mb-2">Пошук</label>
+                            <input type="text" name="searchTerm" class="form-control form-control-sm" value="@ViewBag.SearchTerm" placeholder="Назва товару...">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="fw-500 mb-2">Сортування</label>
+                            <select name="sortOrder" class="form-select form-select-sm" onchange="this.form.submit()">
+                                <option value="" selected="@(ViewBag.SortOrder == "")">За назвою (А-Я)</option>
+                                <option value="name_desc" selected="@(ViewBag.SortOrder == "name_desc")">За назвою (Я-А)</option>
+                                <option value="price_asc" selected="@(ViewBag.SortOrder == "price_asc")">За ціною (спочатку дешевші)</option>
+                                <option value="price_desc" selected="@(ViewBag.SortOrder == "price_desc")">За ціною (спочатку дорожчі)</option>
+                            </select>
+                        </div>
 
                         <div class="mb-4">
                             <label class="fw-500 mb-2">Категорія</label>
@@ -32,6 +59,12 @@
                                 <span class="input-group-text">-</span>
                                 <input type="number" name="maxPrice" class="form-control" value="@ViewBag.MaxPrice" placeholder="До">
                             </div>
+                        </div>
+                        
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" name="inStockOnly" value="true" class="form-check-input" id="inStockCheck"
+                                   checked="@(ViewBag.InStockOnly)">
+                            <label class="form-check-label" for="inStockCheck">Тільки в наявності</label>
                         </div>
 
                         <div class="mb-4" id="volumeFilter" style="display: none;">
@@ -96,18 +129,23 @@
                 <nav class="mt-4">
                     <ul class="pagination justify-content-center">
                         <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                            <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1 })" tabindex="-1">
+                            @{ routeData["page"] = (currentPage - 1).ToString(); }
+                            <a class="page-link" asp-all-route-data="routeData" tabindex="-1">
                                 <i class="fas fa-chevron-left"></i>
                             </a>
                         </li>
+                        
                         @for (int i = 1; i <= totalPages; i++)
                         {
+                            routeData["page"] = i.ToString();
                             <li class="page-item @(i == currentPage ? "active" : "")">
-                                <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                                <a class="page-link" asp-all-route-data="routeData">@i</a>
                             </li>
                         }
+                        
                         <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                            <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1 })">
+                            @{ routeData["page"] = (currentPage + 1).ToString(); }
+                            <a class="page-link" asp-all-route-data="routeData">
                                 <i class="fas fa-chevron-right"></i>
                             </a>
                         </li>

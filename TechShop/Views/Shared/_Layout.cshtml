@@ -14,6 +14,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     
+        <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        .footer {
+            background-color: #f8f9fa;
+            padding: 1rem 0;
+        }
+    </style>
+
 </head>
 <body>
     <header>
@@ -128,7 +146,7 @@
                     <p class="mb-0">&copy; 2025 Shop - Всі права захищено</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <a class="text-muted text-decoration-none" asp-controller="Home" asp-action="Privacy">Privacy Policy</a>
+                   <span class="text-muted">Privacy Policy</span>
                 </div>
             </div>
         </div>

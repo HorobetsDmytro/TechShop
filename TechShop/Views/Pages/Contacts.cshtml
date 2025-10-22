@@ -1,0 +1,234 @@
+﻿@{
+    ViewData["Title"] = "Контакти";
+}
+
+<div class="container py-5">
+    <div class="text-center mb-5 about-intro">
+        <h1 class="section-title">
+            <span class="title-highlight">@ViewData["Title"]</span>
+        </h1>
+        <div class="title-underline mx-auto"></div>
+        <p class="lead text-secondary animated-text">Ми завжди готові допомогти вам!</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="contact-info-card card border-0 shadow-lg p-4 mb-4 hover-elevation">
+                <div class="floating-elements">
+                    <div class="floating-dot dot-1"></div>
+                    <div class="floating-dot dot-2"></div>
+                    <div class="floating-dot dot-3"></div>
+                </div>
+                
+                <h4 class="mb-4 text-primary">
+                    <i class="fas fa-address-book me-2"></i>
+                    Наші контакти
+                </h4>
+                
+                <div class="contact-item mb-3">
+                    <div class="contact-icon-wrapper">
+                        <i class="fas fa-map-marker-alt text-primary"></i>
+                    </div>
+                    <div>
+                        <strong>Адреса:</strong><br>
+                        <span class="text-secondary">м. Хмельницький, вул. Чорновола, 41/2</span>
+                    </div>
+                </div>
+
+                <div class="contact-item mb-3">
+                    <div class="contact-icon-wrapper">
+                        <i class="fas fa-phone text-success"></i>
+                    </div>
+                    <div>
+                        <strong>Телефон:</strong><br>
+                        <a href="tel:+380441234567" class="text-decoration-none text-success fw-500">
+                            +380 (44) 123-45-67
+                        </a>
+                    </div>
+                </div>
+
+                <div class="contact-item mb-4">
+                    <div class="contact-icon-wrapper">
+                        <i class="fas fa-envelope text-info"></i>
+                    </div>
+                    <div>
+                        <strong>Email:</strong><br>
+                        <a href="mailto:info@clothes-shop.com" class="text-decoration-none text-info fw-500">
+                            info@clothes-shop.com
+                        </a>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <a href="mailto:info@clothes-shop.com" class="btn btn-outline-primary hover-shadow">
+                        <i class="fas fa-paper-plane me-2"></i>Написати листа
+                    </a>
+                </div>
+            </div>
+
+            <div class="contact-info-card card border-0 shadow-lg p-4 hover-elevation">
+                <h4 class="mb-4 text-primary">
+                    <i class="fas fa-clock me-2"></i>
+                    Графік роботи
+                </h4>
+                <ul class="list-unstyled schedule-list">
+                    <li class="d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-calendar-day me-2 text-primary"></i>Понеділок - П'ятниця</span>
+                        <span class="badge bg-success">9:00 - 18:00</span>
+                    </li>
+                    <li class="d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-calendar-week me-2 text-warning"></i>Субота - Неділя</span>
+                        <span class="badge bg-warning">10:00 - 16:00</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="feedback-form-card card border-0 shadow-lg p-4 hover-elevation">
+                <h4 class="mb-4 text-primary">
+                    <i class="fas fa-comments me-2"></i>
+                    Зворотній зв'язок
+                </h4>
+                
+                <form id="feedbackForm">
+                    <div class="mb-4">
+                        <label for="name" class="form-label fw-500">
+                            <i class="fas fa-user me-1 text-primary"></i>Ваше ім'я
+                        </label>
+                        <input type="text" class="form-control enhanced-input" id="name" name="name" required 
+                               placeholder="Введіть ваше ім'я">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="email" class="form-label fw-500">
+                            <i class="fas fa-envelope me-1 text-info"></i>Ваш email
+                        </label>
+                        <input type="email" class="form-control enhanced-input" id="email" name="email" required 
+                               placeholder="example@email.com">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="message" class="form-label fw-500">
+                            <i class="fas fa-comment-dots me-1 text-warning"></i>Ваше повідомлення
+                        </label>
+                        <textarea class="form-control enhanced-input" id="message" name="message" rows="5" required 
+                                  placeholder="Розкажіть нам, як ми можемо вам допомогти..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary enhanced-submit-btn w-100">
+                        <span class="btn-ripple"></span>
+                        <i class="fas fa-paper-plane me-2"></i>Надіслати повідомлення
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.contact-info-card, .feedback-form-card, .map-section').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                el.style.transition = 'all 0.6s ease';
+                observer.observe(el);
+            });
+
+            $('#feedbackForm').on('submit', function (e) {
+                e.preventDefault();
+                
+                const $form = $(this);
+                const $submitBtn = $form.find('.enhanced-submit-btn');
+                const originalText = $submitBtn.html();
+                
+                $form.addClass('form-sending');
+                $submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>Відправляємо...');
+
+                var formData = {
+                    name: $('#name').val(),
+                    email: $('#email').val(),
+                    message: $('#message').val()
+                };
+
+                $.ajax({
+                    url: '/Feedback/Create',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function (response) {
+                        $form.removeClass('form-sending');
+                        
+                        if (response.success) {
+                            $submitBtn.html('<i class="fas fa-check me-2"></i>Надіслано!');
+                            $submitBtn.removeClass('btn-primary').addClass('btn-success');
+                            
+                            $form.prepend(`
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Повідомлення успішно надіслано! Ми зв'яжемося з вами найближчим часом.
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            `);
+                            
+                            $('#feedbackForm')[0].reset();
+                            
+                            setTimeout(() => {
+                                $submitBtn.html(originalText);
+                                $submitBtn.removeClass('btn-success').addClass('btn-primary');
+                            }, 3000);
+                        } else {
+                            throw new Error('Помилка сервера');
+                        }
+                    },
+                    error: function () {
+                        $form.removeClass('form-sending');
+                        $submitBtn.html(originalText);
+                        
+                        $form.prepend(`
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Виникла помилка при відправці повідомлення. Спробуйте ще раз.
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        `);
+                    }
+                });
+            });
+
+            const statsObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.querySelectorAll('.stat-number').forEach((stat, index) => {
+                            setTimeout(() => {
+                                stat.style.transform = 'scale(1.1)';
+                                setTimeout(() => {
+                                    stat.style.transform = 'scale(1)';
+                                }, 200);
+                            }, index * 100);
+                        });
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            document.querySelectorAll('.stats-section').forEach(el => {
+                statsObserver.observe(el);
+            });
+        });
+    </script>
+}

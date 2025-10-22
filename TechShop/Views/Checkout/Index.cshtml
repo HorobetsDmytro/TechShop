@@ -1,0 +1,443 @@
+﻿@model TechShop.ViewModels.CheckoutViewModel
+@{
+ViewData["Title"] = "Оформлення замовлення";
+
+// Розрахунок часу виготовлення для товарів у кошику
+int maxProductionDays = 0;
+bool hasOutOfStockItems = false;
+
+if (Model.Cart?.Items?.Any() == true)
+{
+foreach (var item in Model.Cart.Items)
+{
+if (item.Product != null)
+{
+if (item.Product.StockQuantity <= 0)
+{
+hasOutOfStockItems = true;
+if (item.Product.ProductionTimeDays > maxProductionDays)
+{
+maxProductionDays = item.Product.ProductionTimeDays;
+}
+}
+}
+}
+}
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Оформлення замовлення</h4>
+                </div>
+                <div class="card-body">
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                    <div class="alert alert-danger">
+                        <h5>Помилки валідації:</h5>
+                        <ul>
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                            <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                    </div>
+                    }
+
+                    <form asp-action="ProcessOrder" asp-controller="Checkout" method="post" id="checkoutForm">
+
+                        <div class="mb-4">
+                            <h5>Спосіб доставки</h5>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" asp-for="DeliveryMethod" value="0" id="selfPickup" checked>
+                                <label class="form-check-label" for="selfPickup">
+                                    Самовивіз (безкоштовно)
+                                    <small class="text-muted d-block">Готово до отримання протягом 1-2 робочих днів</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" asp-for="DeliveryMethod" value="1" id="novaPoshta">
+                                <label class="form-check-label" for="novaPoshta">
+                                    Нова Пошта (60-80 грн)
+                                    <small class="text-muted d-block">1-2 робочі дні після відправки</small>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" asp-for="DeliveryMethod" value="2" id="courier">
+                                <label class="form-check-label" for="courier">
+                                    Кур'єрська доставка (100-150 грн)
+                                    <small class="text-muted d-block">1 робочий день після відправки</small>
+                                </label>
+                            </div>
+                            <span asp-validation-for="DeliveryMethod" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5>Дані отримувача</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="RecipientName" class="form-label">Ім'я отримувача *</label>
+                                        <input asp-for="RecipientName" class="form-control" required>
+                                        <span asp-validation-for="RecipientName" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="RecipientPhone" class="form-label">Телефон *</label>
+                                        <input asp-for="RecipientPhone" class="form-control" type="tel" required>
+                                        <span asp-validation-for="RecipientPhone" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4" id="deliveryDetails" style="display: none;">
+                            <h5>Адреса доставки</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="City" class="form-label">Місто</label>
+                                        <input asp-for="City" class="form-control">
+                                        <span asp-validation-for="City" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6" id="addressField">
+                                    <div class="mb-3">
+                                        <label asp-for="Address" class="form-label">Адреса</label>
+                                        <input asp-for="Address" class="form-control">
+                                        <span asp-validation-for="Address" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6" id="novaPoshtaField" style="display: none;">
+                                    <div class="mb-3">
+                                        <label asp-for="NovaPoshtaBranch" class="form-label">Відділення Нової Пошти</label>
+                                        <input asp-for="NovaPoshtaBranch" class="form-control" placeholder="Номер відділення">
+                                        <span asp-validation-for="NovaPoshtaBranch" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row" id="deliveryDateField" style="display: none;">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="PreferredDeliveryDate" class="form-label">Бажана дата доставки *</label>
+                                        <input asp-for="PreferredDeliveryDate" class="form-control" type="date" id="deliveryDateInput">
+                                        <span asp-validation-for="PreferredDeliveryDate" class="text-danger"></span>
+                                        <div class="form-text">Доставка можлива через 2-3 дні від замовлення</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="DeliveryNotes" class="form-label">Примітки до доставки</label>
+                                <textarea asp-for="DeliveryNotes" class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5>Спосіб оплати</h5>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="0" id="cash">
+                                <label class="form-check-label" for="cash">
+                                    Готівкою при отриманні
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" asp-for="PaymentMethod" value="1" id="card" checked>
+                                <label class="form-check-label" for="card">
+                                    Картою онлайн (LiqPay)
+                                </label>
+                            </div>
+                            <span asp-validation-for="PaymentMethod" class="text-danger"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Оформити замовлення</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Ваше замовлення</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Cart?.Items?.Any() == true)
+                    {
+                    @foreach (var item in Model.Cart.Items)
+                    {
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>@item.Product.Name x @item.Quantity</span>
+                        <span>@((item.Product.Price * item.Quantity).ToString("C", new System.Globalization.CultureInfo("uk-UA")))</span>
+                    </div>
+                    }
+                    <hr>
+
+                    <!-- Інформація про терміни виконання -->
+                    <div class="alert alert-info p-2 mb-3">
+                        <h6 class="mb-2"><i class="fas fa-clock me-1"></i>Терміни виконання:</h6>
+
+                        @if (hasOutOfStockItems)
+                        {
+                        <div class="small mb-1">
+                            <i class="fas fa-cog me-1 text-warning"></i>
+                            <strong>Виготовлення:</strong> @maxProductionDays @(maxProductionDays == 1 ? "день" : maxProductionDays < 5 ? "дні" : "днів")
+                        </div>
+                        }
+
+                        <div class="small mb-1" id="deliveryTimeInfo">
+                            <i class="fas fa-truck me-1 text-primary"></i>
+                            <strong>Доставка:</strong> <span id="deliveryTimeText">Самовивіз - готово до отримання</span>
+                        </div>
+
+                        <hr class="my-2">
+                        <div class="small fw-bold text-primary" id="totalTimeInfo">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            <span id="totalTimeText">
+                                @if (hasOutOfStockItems)
+                                {
+                                @($"Загальний час: {maxProductionDays} {(maxProductionDays == 1 ? "день" : maxProductionDays < 5 ? "дні" : "днів")} (тільки виготовлення)")
+                                }
+                                else
+                                {
+                                @("Готово до самовивозу протягом 1-2 робочих днів")
+                                }
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <strong>Товари:</strong>
+                        <strong id="subtotal">@Model.Cart.Items.Sum(i => i.Product.Price * i.Quantity).ToString("C", new System.Globalization.CultureInfo("uk-UA"))</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Доставка:</span>
+                        <span id="deliveryCost">0 грн</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Всього:</strong>
+                        <strong id="total">@Model.Cart.Items.Sum(i => i.Product.Price * i.Quantity).ToString("C", new System.Globalization.CultureInfo("uk-UA"))</strong>
+                    </div>
+                    }
+                    else
+                    {
+                    <p class="text-muted">Кошик порожній</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Checkout page loaded');
+
+        const form = document.getElementById('checkoutForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const deliveryMethods = document.querySelectorAll('input[name="DeliveryMethod"]');
+        const deliveryDetails = document.getElementById('deliveryDetails');
+        const addressField = document.getElementById('addressField');
+        const novaPoshtaField = document.getElementById('novaPoshtaField');
+        const deliveryDateField = document.getElementById('deliveryDateField');
+        const deliveryDateInput = document.getElementById('deliveryDateInput');
+        const cityInput = document.querySelector('input[name="City"]');
+        const deliveryCostSpan = document.getElementById('deliveryCost');
+        const totalSpan = document.getElementById('total');
+        const subtotalSpan = document.getElementById('subtotal');
+
+        const deliveryTimeText = document.getElementById('deliveryTimeText');
+        const totalTimeText = document.getElementById('totalTimeText');
+
+        const hasOutOfStockItems = @(hasOutOfStockItems ? "true" : "false");
+        const maxProductionDays = @maxProductionDays;
+
+        const today = new Date();
+        const minDate = new Date(today);
+        minDate.setDate(today.getDate() + 2);
+        const minDateString = minDate.toISOString().split('T')[0];
+
+        if (deliveryDateInput) {
+            deliveryDateInput.min = minDateString;
+        }
+
+        let subtotalValue = 0;
+        if (subtotalSpan) {
+            const subtotalText = subtotalSpan.textContent || subtotalSpan.innerText;
+            const numericValue = subtotalText.replace(/[^\d,]/g, '').replace(',', '.');
+            subtotalValue = parseFloat(numericValue) || 0;
+            console.log('Subtotal value:', subtotalValue);
+        }
+
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                console.log('Form submit event triggered');
+
+                const recipientName = document.querySelector('input[name="RecipientName"]').value;
+                const recipientPhone = document.querySelector('input[name="RecipientPhone"]').value;
+
+                if (!recipientName || !recipientPhone) {
+                    e.preventDefault();
+                    alert('Будь ласка, заповніть всі обов\'язкові поля');
+                    return false;
+                }
+
+                const selectedDelivery = document.querySelector('input[name="DeliveryMethod"]:checked');
+                if (selectedDelivery && selectedDelivery.value !== '0') {
+                    const city = document.querySelector('input[name="City"]').value;
+                    if (!city) {
+                        e.preventDefault();
+                        alert('Будь ласка, вкажіть місто для доставки');
+                        return false;
+                    }
+
+                    if (selectedDelivery.value === '2') {
+                        const deliveryDate = document.querySelector('input[name="PreferredDeliveryDate"]').value;
+                        if (!deliveryDate) {
+                            e.preventDefault();
+                            alert('Будь ласка, вкажіть бажану дату доставки');
+                            return false;
+                        }
+
+                        const selectedDate = new Date(deliveryDate);
+                        const minAllowedDate = new Date(minDateString);
+                        if (selectedDate < minAllowedDate) {
+                            e.preventDefault();
+                            alert('Доставка можлива не раніше ніж через 2 дні від замовлення');
+                            return false;
+                        }
+                    }
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Обробка...';
+            });
+        }
+
+        function updateDeliveryTimeInfo() {
+            const selectedMethod = document.querySelector('input[name="DeliveryMethod"]:checked');
+            if (!selectedMethod) return;
+
+            const method = parseInt(selectedMethod.value);
+            let deliveryDays = 0;
+            let deliveryText = "";
+            let totalDays = 0;
+            let totalText = "";
+
+            switch(method) {
+                case 0:
+                    deliveryDays = 0;
+                    deliveryText = "Самовивіз - готово до отримання";
+                    break;
+                case 1:
+                    deliveryDays = 2;
+                    deliveryText = "Нова Пошта - 1-2 робочі дні";
+                    break;
+                case 2:
+                    deliveryDays = 1;
+                    deliveryText = "Кур'єрська доставка - 1 робочий день";
+                    break;
+            }
+
+            totalDays = deliveryDays;
+            if (hasOutOfStockItems) {
+                totalDays += maxProductionDays;
+                totalText = `Загальний час: ${totalDays} ${totalDays == 1 ? 'день' : totalDays < 5 ? 'дні' : 'днів'} (виготовлення + доставка)`;
+            } else {
+                if (method === 0) {
+                    totalText = "Готово до самовивозу протягом 1-2 робочих днів";
+                } else {
+                    totalText = `Загальний час: ${deliveryDays} ${deliveryDays == 1 ? 'день' : deliveryDays < 5 ? 'дні' : 'днів'} (тільки доставка)`;
+                }
+            }
+
+            if (deliveryTimeText) {
+                deliveryTimeText.textContent = deliveryText;
+            }
+            if (totalTimeText) {
+                totalTimeText.textContent = totalText;
+            }
+        }
+
+        function updateDeliveryDetails() {
+            const selectedMethod = document.querySelector('input[name="DeliveryMethod"]:checked');
+            if (!selectedMethod) return;
+
+            const method = parseInt(selectedMethod.value);
+            console.log('Selected delivery method:', method);
+
+            if (method === 0) {
+                deliveryDetails.style.display = 'none';
+                updateTotal(0);
+            } else {
+                deliveryDetails.style.display = 'block';
+
+                if (method === 1) {
+                    addressField.style.display = 'none';
+                    novaPoshtaField.style.display = 'block';
+                    deliveryDateField.style.display = 'none';
+                    if (deliveryDateInput) {
+                        deliveryDateInput.removeAttribute('required');
+                    }
+                } else if (method === 2) {
+                    addressField.style.display = 'block';
+                    novaPoshtaField.style.display = 'none';
+                    deliveryDateField.style.display = 'block';
+                    if (deliveryDateInput) {
+                        deliveryDateInput.setAttribute('required', 'required');
+                    }
+                }
+
+                calculateDeliveryCost();
+            }
+
+            updateDeliveryTimeInfo();
+        }
+
+        function calculateDeliveryCost() {
+            const selectedMethod = document.querySelector('input[name="DeliveryMethod"]:checked');
+            if (!selectedMethod) return;
+
+            const method = parseInt(selectedMethod.value);
+            const city = cityInput ? cityInput.value.toLowerCase() : '';
+            let cost = 0;
+
+            if (method === 1) {
+                cost = city.includes('київ') ? 60 : 80;
+            } else if (method === 2) {
+                cost = city.includes('київ') ? 100 : 150;
+            }
+
+            updateTotal(cost);
+        }
+
+        function updateTotal(deliveryCost) {
+            if (deliveryCostSpan) {
+                deliveryCostSpan.textContent = deliveryCost + ' грн';
+            }
+
+            if (totalSpan) {
+                const total = subtotalValue + deliveryCost;
+                totalSpan.textContent = total.toLocaleString('uk-UA', {
+                    style: 'currency',
+                    currency: 'UAH'
+                });
+            }
+        }
+
+        deliveryMethods.forEach(method => {
+            method.addEventListener('change', updateDeliveryDetails);
+        });
+
+        if (cityInput) {
+            cityInput.addEventListener('input', calculateDeliveryCost);
+        }
+
+        updateDeliveryDetails();
+    });
+</script>

@@ -1,6 +1,20 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Localization
+@using Microsoft.Extensions.Localization
+@using Microsoft.Extensions.Options
+
 @inject SignInManager<User> SignInManager
 @inject UserManager<User> UserManager
+@inject IOptions<RequestLocalizationOptions> LocOptions
+@inject IStringLocalizer<SharedResource> SharedLocalizer
+
+@{
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var cultureItems = LocOptions.Value.SupportedUICultures
+        .Select(c => new SelectListItem { Value = c.Name, Text = c.NativeName })
+        .ToList();
+    var returnUrl = string.IsNullOrEmpty(Context.Request.Path) ? "~/" : $"~{Context.Request.Path.Value}{Context.Request.QueryString}";
+}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -48,16 +62,16 @@
                 <div class="collapse navbar-collapse" id="navbarContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Main">Головна</a>
+                            <a class="nav-link" asp-controller="Home" asp-action="Main">@SharedLocalizer["Menu_Home"]</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Товари</a>
+                            <a class="nav-link" asp-controller="Home" asp-action="Index">@SharedLocalizer["Menu_Products"]</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Pages" asp-action="AboutUs">Про нас</a>
+                            <a class="nav-link" asp-controller="Pages" asp-action="AboutUs">@SharedLocalizer["Menu_About"]</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Pages" asp-action="Contacts">Контакти</a>
+                            <a class="nav-link" asp-controller="Pages" asp-action="Contacts">@SharedLocalizer["Menu_Contacts"]</a>
                         </li>
                         @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin"))
                         {
@@ -87,6 +101,18 @@
                     </ul>
 
                     <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <form asp-controller="Home" asp-action="SetLanguage" asp-route-returnUrl="@returnUrl" method="post">
+                                <select name="culture"
+                                        onchange="this.form.submit();"
+                                        asp-for="@requestCulture.RequestCulture.UICulture.Name"
+                                        asp-items="cultureItems"
+                                        class="form-select form-select-sm"
+                                        style="width: auto;">
+                                </select>
+                            </form>
+                        </div>
+                        
                         @if (SignInManager.IsSignedIn(User))
                         {
                             @if (User != null)

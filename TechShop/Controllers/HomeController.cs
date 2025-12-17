@@ -4,6 +4,7 @@ using TechShop.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Localization;
 
 namespace TechShop.Controllers
 {
@@ -148,6 +149,18 @@ namespace TechShop.Controllers
 
             ViewBag.CarouselProducts = carouselProducts;
             return View(popularProducts);
+        }
+        
+        [HttpPost]
+        public IActionResult SetLanguage(string culture, string returnUrl)
+        {
+            Response.Cookies.Append(
+                CookieRequestCultureProvider.DefaultCookieName,
+                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+                new CookieOptions { Expires = DateTimeOffset.UtcNow.AddYears(1) }
+            );
+
+            return LocalRedirect(returnUrl);
         }
     }
 }

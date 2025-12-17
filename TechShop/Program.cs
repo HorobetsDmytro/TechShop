@@ -1,5 +1,8 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using TechShop.Interfaces;
 using TechShop.Models;
@@ -10,6 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 builder.Services.AddIdentity<User, IdentityRole>(options => {
         options.Password.RequireDigit = false;
@@ -50,14 +55,43 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.Configure<LiqPaySettings>(builder.Configuration.GetSection("LiqPaySettings"));
 builder.Services.AddScoped<ILiqPayService, LiqPayService>();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+    .AddDataAnnotationsLocalization();
+
 builder.Services.AddRazorPages();
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"))
     .AddPolicy("RequireUserRole", policy => policy.RequireRole("User"));
 
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[]
+    {
+        new CultureInfo("uk"),
+        new CultureInfo("en")
+    };
+
+    options.DefaultRequestCulture = new RequestCulture("uk");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
+
 var app = builder.Build();
+
+var supportedCultures = new[]
+{
+    new CultureInfo("uk"),
+    new CultureInfo("en")
+};
+
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("uk"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+});
 
 if (!app.Environment.IsDevelopment())
 {

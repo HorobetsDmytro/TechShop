@@ -35,7 +35,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Identity/Account/Login";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
     options.SlidingExpiration = true;
-    options.Cookie.SameSite = SameSiteMode.Strict;
+    
+    options.Cookie.SameSite = SameSiteMode.None; 
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 
     options.Cookie.IsEssential = true;

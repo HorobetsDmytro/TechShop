@@ -34,7 +34,7 @@ public class LiqPayService : ILiqPayService
                 ["action"] = "pay",
                 ["amount"] = Math.Round(order.TotalWithDelivery, 2),
                 ["currency"] = "UAH",
-                ["description"] = $"Оплата замовлення №{order.Id} - Граланд",
+                ["description"] = $"Оплата замовлення №{order.Id} - Tech shop",
                 ["order_id"] = order.Id.ToString(),
                 ["sandbox"] = _settings.SandboxMode ? 1 : 0,
                 ["server_url"] = callbackUrl,
@@ -124,6 +124,48 @@ public class LiqPayService : ILiqPayService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error parsing callback data");
+            return new Dictionary<string, object>();
+        }
+    }
+
+    public async Task<Dictionary<string, object>> GetStatusAsync(string orderId)
+    {
+        try
+        {
+            var paymentData = new Dictionary<string, object>
+            {
+                ["public_key"] = _settings.PublicKey,
+                ["version"] = "3",
+                ["action"] = "status",
+                ["order_id"] = orderId,
+                ["sandbox"] = _settings.SandboxMode ? 1 : 0
+            };
+
+            var jsonData = JsonSerializer.Serialize(paymentData);
+            var data = Convert.ToBase64String(Encoding.UTF8.GetBytes(jsonData));
+            var signature = GenerateSignature(data);
+
+            var values = new Dictionary<string, string>
+            {
+                { "data", data },
+                { "signature", signature }
+            };
+            var content = new FormUrlEncodedContent(values);
+
+            using var client = new HttpClient();
+        
+            var response = await client.PostAsync("https://www.liqpay.ua/api/request", content);
+        
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            _logger.LogInformation($"LiqPay API Response for {orderId}: {responseString}");
+
+            var result = JsonSerializer.Deserialize<Dictionary<string, object>>(responseString);
+            return result ?? new Dictionary<string, object>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting status from LiqPay");
             return new Dictionary<string, object>();
         }
     }

@@ -1,0 +1,115 @@
+﻿@model IEnumerable<TechShop.Models.Order>
+
+@{
+    ViewData["Title"] = "Мої замовлення";
+}
+
+<div class="container py-4">
+    <h2 class="mb-4"><i class="fas fa-box-open me-2"></i>Мої замовлення</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-shopping-basket fa-4x text-muted"></i>
+            </div>
+            <h4>У вас поки немає замовлень</h4>
+            <p class="text-muted">Але це легко виправити!</p>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-3">
+                Перейти до покупок
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var order in Model)
+            {
+                <div class="col-12 mb-4">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                            <div>
+                                <span class="fw-bold text-primary me-2">№@order.Id</span>
+                                <span class="text-muted small">від @order.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                            </div>
+                            <div>
+                                @{
+                                    var statusClass = order.Status switch
+                                    {
+                                        OrderStatus.New => "bg-primary",
+                                        OrderStatus.Processing => "bg-info text-dark",
+                                        OrderStatus.Completed => "bg-success",
+                                        _ => "bg-secondary"
+                                    };
+                                    
+                                    var statusName = order.Status switch
+                                    {
+                                        OrderStatus.New => "Нове",
+                                        OrderStatus.Processing => "В обробці",
+                                        OrderStatus.Completed => "Доставлено",
+                                        _ => order.Status.ToString()
+                                    };
+                                }
+                                <span class="badge @statusClass rounded-pill">@statusName</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <div class="d-flex flex-wrap gap-3">
+                                        @foreach (var item in order.OrderItems.Take(3))
+                                        {
+                                            <div class="d-flex align-items-center mb-2">
+                                                @if (!string.IsNullOrEmpty(item.Product?.ImageUrl))
+                                                {
+                                                    <img src="@item.Product.ImageUrl" alt="@item.Product.Name" 
+                                                         class="rounded me-2" style="width: 50px; height: 50px; object-fit: cover;">
+                                                }
+                                                <div>
+                                                    <div class="small fw-bold">@item.Product?.Name</div>
+                                                    <div class="small text-muted">@item.Quantity x @item.Price.ToString("N2") ₴</div>
+                                                </div>
+                                            </div>
+                                        }
+                                        @if (order.OrderItems.Count > 3)
+                                        {
+                                            <div class="d-flex align-items-center text-muted small">
+                                                + ще @(order.OrderItems.Count - 3)
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                                    <div class="mb-2">
+                                        <span class="text-muted small">Сума замовлення:</span>
+                                        <h5 class="fw-bold text-success mb-0">@order.TotalWithDelivery.ToString("N2") ₴</h5>
+                                    </div>
+                                    
+                                    @if (order.Payment is { Status: PaymentStatus.Pending, PaymentMethod: PaymentMethod.Card })
+                                    {
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <a asp-controller="Checkout" asp-action="PayWithCard" asp-route-orderId="@order.Id" 
+                                               class="btn btn-warning btn-sm">
+                                                <i class="fas fa-credit-card me-1"></i>Оплатити
+                                            </a>
+
+                                            <form asp-action="VerifyPayment" asp-route-orderId="@order.Id" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-outline-info btn-sm" title="Натисніть, якщо ви вже оплатили">
+                                                    <i class="fas fa-sync-alt me-1"></i>Я вже оплатив
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                    
+                                    <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-outline-primary btn-sm">
+                                        Деталі
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

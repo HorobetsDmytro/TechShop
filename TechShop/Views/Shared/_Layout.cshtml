@@ -62,16 +62,16 @@
                 <div class="collapse navbar-collapse" id="navbarContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Main">@SharedLocalizer["Menu_Home"]</a>
+                            <a class="nav-link" asp-controller="Home" asp-area="" asp-action="Main">@SharedLocalizer["Menu_Home"]</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Home" asp-action="Index">@SharedLocalizer["Menu_Products"]</a>
+                            <a class="nav-link" asp-controller="Home" asp-area="" asp-action="Index">@SharedLocalizer["Menu_Products"]</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Pages" asp-action="AboutUs">@SharedLocalizer["Menu_About"]</a>
+                            <a class="nav-link" asp-controller="Pages" asp-area="" asp-action="AboutUs">@SharedLocalizer["Menu_About"]</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-controller="Pages" asp-action="Contacts">@SharedLocalizer["Menu_Contacts"]</a>
+                            <a class="nav-link" asp-controller="Pages" asp-area="" asp-action="Contacts">@SharedLocalizer["Menu_Contacts"]</a>
                         </li>
                         @if (SignInManager.IsSignedIn(User) && User.IsInRole("Admin"))
                         {
@@ -102,7 +102,7 @@
 
                     <div class="d-flex align-items-center">
                         <div class="me-3">
-                            <form asp-controller="Home" asp-action="SetLanguage" asp-route-returnUrl="@returnUrl" method="post">
+                            <form asp-controller="Home" asp-area="" asp-action="SetLanguage" asp-route-returnUrl="@returnUrl" method="post">
                                 <select name="culture"
                                         onchange="this.form.submit();"
                                         asp-for="@requestCulture.RequestCulture.UICulture.Name"
@@ -115,17 +115,6 @@
                         
                         @if (SignInManager.IsSignedIn(User))
                         {
-                            @if (User != null)
-                            {
-                                var currentUser = await UserManager.GetUserAsync(User);
-                                if (currentUser != null)
-                                {
-                                    <span class="user-welcome text-muted me-3">
-                                        Вітаю, @currentUser.FirstName @currentUser.LastName
-                                    </span>
-                                }
-                            }
-
                             <a class="btn btn-outline-dark position-relative me-3" asp-area="" asp-controller="ShoppingCart" asp-action="Index">
                                 <i class="fas fa-shopping-cart"></i>
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
@@ -134,13 +123,36 @@
                                 </span>
                             </a>
 
-                            <div class="btn-group">
-                                <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home")">
-                                    <button type="submit" class="btn btn-outline-danger">
-                                        <i class="fas fa-sign-out-alt me-2"></i>Вийти
-                                    </button>
-                                </form>
-                            </div>
+                            @if (User != null)
+                            {
+                                var currentUser = await UserManager.GetUserAsync(User);
+                                if (currentUser != null)
+                                {
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-user me-2"></i>@currentUser.FirstName
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuButton">
+                    
+                                            <li>
+                                                <a class="dropdown-item" asp-area="" asp-controller="Orders" asp-action="Index">
+                                                    <i class="fas fa-box-open me-2"></i>Мої замовлення
+                                                </a>
+                                            </li>
+                    
+                                            <li><hr class="dropdown-divider"></li>
+                    
+                                            <li>
+                                                <form class="px-2" method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home")">
+                                                    <button type="submit" class="btn btn-danger btn-sm w-100">
+                                                        <i class="fas fa-sign-out-alt me-2"></i>Вийти
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                }
+                            }
                         }
                         else
                         {

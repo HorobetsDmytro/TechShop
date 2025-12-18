@@ -281,7 +281,7 @@ public class OrderController : Controller
             var backgroundColor = isEvenRow ? new BaseColor(248, 249, 250) : BaseColor.WHITE;
             
             AddDetailCell(unpurchasedTable, product.Id.ToString(), tableCellFont, backgroundColor);
-            AddDetailCell(unpurchasedTable, product.Name ?? "Без назви", tableCellFont, backgroundColor);
+            AddDetailCell(unpurchasedTable, product.Name, tableCellFont, backgroundColor);
             AddDetailCell(unpurchasedTable, $"₴{product.Price:F2}", tableCellFont, backgroundColor);
             
             isEvenRow = !isEvenRow;

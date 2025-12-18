@@ -99,7 +99,7 @@
                             </div>
                             <div class="card-body d-flex flex-column">
                                 <h6 class="card-title mb-2">@product.Name</h6>
-                                <div class="text-primary fw-bold mb-2">@product.Price.ToString("C")</div>
+                                <div class="text-primary fw-bold mb-2">@product.Price.ToString("N2") ₴</div>
                                 <div class="mt-auto d-flex gap-2">
                                     <a asp-controller="Home" asp-action="Details" asp-route-id="@product.Id"
                                        class="btn btn-outline-primary btn-sm flex-grow-1">

@@ -8,4 +8,5 @@ public interface ILiqPayService
     string GenerateSignature(string data);
     bool VerifyCallback(string data, string signature);
     Dictionary<string, object> ParseCallbackData(string data);
+    Task<Dictionary<string, object>> GetStatusAsync(string orderId);
 }

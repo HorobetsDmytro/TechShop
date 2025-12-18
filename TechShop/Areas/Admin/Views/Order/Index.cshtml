@@ -127,7 +127,7 @@
                     <td><strong>#@order.Id</strong></td>
                     <td>@order.CreatedAt.ToShortDateString()</td>
                     <td>@order.User?.FirstName @order.User?.LastName</td>
-                    <td><strong>@order.TotalAmount.ToString("C")</strong></td>
+                    <td><strong>@order.TotalAmount.ToString("N2") ₴</strong></td>
                     <td>
                         <form asp-action="UpdateStatus" method="post" class="d-inline">
                             <input type="hidden" name="id" value="@order.Id" />

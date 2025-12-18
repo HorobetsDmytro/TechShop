@@ -93,4 +93,16 @@ public class OrderRepository : GenericRepository<Order>, IOrderRepository
     {
         return await _context.Products.FindAsync(id);
     }
+
+    public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(string userId)
+    {
+        return await _context.Orders
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.Product)
+            .Include(o => o.Payment)
+            .Include(o => o.Delivery)
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+    }
 }

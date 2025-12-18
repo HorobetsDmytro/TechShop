@@ -2,7 +2,6 @@
 @{
     ViewData["Title"] = "Оформлення замовлення";
 
-    // Розрахунок часу виготовлення для товарів у кошику
     int maxProductionDays = 0;
     bool hasOutOfStockItems = false;
 
@@ -168,23 +167,12 @@
                     {
                     <div class="d-flex justify-content-between mb-2">
                         <span>@item.Product.Name x @item.Quantity</span>
-                        <span>@((item.Product.Price * item.Quantity).ToString("C", new System.Globalization.CultureInfo("uk-UA")))</span>
+                        <span>@((item.Product.Price * item.Quantity).ToString("N2", new System.Globalization.CultureInfo("uk-UA"))) ₴</span>
                     </div>
                     }
                     <hr>
 
-                    <!-- Інформація про терміни виконання -->
                     <div class="alert alert-info p-2 mb-3">
-                        <h6 class="mb-2"><i class="fas fa-clock me-1"></i>Терміни виконання:</h6>
-
-                        @if (hasOutOfStockItems)
-                        {
-                        <div class="small mb-1">
-                            <i class="fas fa-cog me-1 text-warning"></i>
-                            <strong>Виготовлення:</strong> @maxProductionDays @(maxProductionDays == 1 ? "день" : maxProductionDays < 5 ? "дні" : "днів")
-                        </div>
-                        }
-
                         <div class="small mb-1" id="deliveryTimeInfo">
                             <i class="fas fa-truck me-1 text-primary"></i>
                             <strong>Доставка:</strong> <span id="deliveryTimeText">Самовивіз - готово до отримання</span>
@@ -208,7 +196,7 @@
 
                     <div class="d-flex justify-content-between">
                         <strong>Товари:</strong>
-                        <strong id="subtotal">@Model.Cart.Items.Sum(i => i.Product.Price * i.Quantity).ToString("C", new System.Globalization.CultureInfo("uk-UA"))</strong>
+                        <strong id="subtotal">@Model.Cart.Items.Sum(i => i.Product.Price * i.Quantity).ToString("N2", new System.Globalization.CultureInfo("uk-UA")) ₴</strong>
                     </div>
                     <div class="d-flex justify-content-between">
                         <span>Доставка:</span>
@@ -217,7 +205,7 @@
                     <hr>
                     <div class="d-flex justify-content-between">
                         <strong>Всього:</strong>
-                        <strong id="total">@Model.Cart.Items.Sum(i => i.Product.Price * i.Quantity).ToString("C", new System.Globalization.CultureInfo("uk-UA"))</strong>
+                        <strong id="total">@Model.Cart.Items.Sum(i => i.Product.Price * i.Quantity).ToString("N2", new System.Globalization.CultureInfo("uk-UA")) ₴</strong>
                     </div>
                     }
                     else

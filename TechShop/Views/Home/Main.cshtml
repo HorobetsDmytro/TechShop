@@ -25,7 +25,7 @@
                 <div class="carousel-caption d-none d-md-block">
                     <h2>@product.Name</h2>
                     <div class="price-tag mb-3">
-                        <span class="display-6">@product.Price.ToString("C")</span>
+                        <span class="display-6">@product.Price.ToString("N2") ₴</span>
                     </div>
                     @if (product.StockQuantity > 0)
                     {
@@ -87,7 +87,7 @@
                     <div class="card-body">
                         <h5 class="card-title">@product.Name</h5>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="h5 mb-0">@product.Price.ToString("C")</span>
+                            <span class="h5 mb-0">@product.Price.ToString("N2") ₴</span>
                             <div class="btn-group">
                                 <a href="@Url.Action("Details", "Home", new { id = product.Id })"
                                    class="btn btn-outline-primary btn-sm">

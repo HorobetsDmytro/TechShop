@@ -139,8 +139,8 @@ public class CheckoutController(
 
             logger.LogInformation("Processing payment for order {OrderId}, amount: {OrderTotalWithDelivery}", orderId, order.TotalWithDelivery);
 
-            var returnUrl = $"{Request.Scheme}://{Request.Host}/Checkout/PaymentResult?orderId={orderId}";
-            var callbackUrl = $"{Request.Scheme}://{Request.Host}/Checkout/PaymentCallback";
+            var returnUrl = Url.Action("PaymentResult", "Checkout", new { orderId = orderId }, Request.Scheme);
+            var callbackUrl = Url.Action("PaymentCallback", "Checkout", null, Request.Scheme);
 
             logger.LogInformation("Return URL: {ReturnUrl}", returnUrl);
             logger.LogInformation("Callback URL: {CallbackUrl}", callbackUrl);
@@ -160,6 +160,7 @@ public class CheckoutController(
     }
 
     [HttpPost]
+    [AllowAnonymous]
     public async Task<IActionResult> PaymentCallback()
     {
         try
@@ -201,25 +202,50 @@ public class CheckoutController(
     }
 
     [HttpGet]
+    [HttpPost]
+    [AllowAnonymous]
     public async Task<IActionResult> PaymentResult(int orderId)
     {
-        var payment = await paymentRepository.GetByOrderIdAsync(orderId);
-        if (payment == null)
+        if (orderId == 0 && Request.Query.ContainsKey("orderId"))
         {
-            return NotFound();
+            int.TryParse(Request.Query["orderId"], out orderId);
         }
 
-        if (payment.Status != PaymentStatus.Success)
+        var payment = await paymentRepository.GetByOrderIdAsync(orderId);
+    
+        if (payment == null)
         {
             return RedirectToAction("Failed", new { orderId });
         }
-        else
+
+        if (payment.Status == PaymentStatus.Success)
         {
             return RedirectToAction("Success", new { orderId });
         }
+
+        if (payment.Status == PaymentStatus.Pending)
+        {
+            var liqPayData = await liqPayService.GetStatusAsync(orderId.ToString());
+        
+            if (liqPayData.TryGetValue("status", out var statusObj))
+            {
+                var status = statusObj.ToString();
+
+                if (status is "success" or "sandbox" or "wait_accept" or "processing")
+                {
+                    await paymentRepository.UpdatePaymentStatusAsync(orderId, PaymentStatus.Success, 
+                        System.Text.Json.JsonSerializer.Serialize(liqPayData));
+                
+                    return RedirectToAction("Success", new { orderId });
+                }
+            }
+        }
+
+        return RedirectToAction("Failed", new { orderId });
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult Success(int orderId)
     {
         var order = orderRepository.GetById(orderId);
@@ -227,6 +253,7 @@ public class CheckoutController(
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult Failed(int orderId)
     {
         var order = orderRepository.GetById(orderId);
